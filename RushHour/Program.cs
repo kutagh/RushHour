@@ -26,12 +26,12 @@ namespace RushHour {
             // Here goes parallel search for the holy grail
             var queue = new ConcurrentQueue<Tuple<Map, char>>();
             queue.Enqueue(new Tuple<Map, char>(map, '.'));
-            Iterate(ref queue);
-            Console.WriteLine(queue.Count());
-            foreach (var m in queue) {
-                Console.WriteLine("Permutation of input:");
-                Console.WriteLine(m.Item1.ToString());
-            }
+            //Iterate(ref queue);
+            //Console.WriteLine(queue.Count());
+            //foreach (var m in queue) {
+            //    Console.WriteLine("Permutation of input:");
+            //    Console.WriteLine(m.Item1.ToString());
+            //}
             // Testing input parsing
             while (true) {
                 Console.WriteLine(map.ToString());

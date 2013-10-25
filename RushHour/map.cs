@@ -109,8 +109,8 @@ namespace RushHour {
                                 nextX      = x + dir.GetX() * length;
                                 nextY      = y + dir.GetY() * length;
                                 length++;
-                            
                             }
+                            length--;
                             result.Add(map[x, y], new Tuple<Point, int, Direction>(startPoint, length, dir));
                         }
                 }
