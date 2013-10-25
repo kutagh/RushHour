@@ -24,7 +24,13 @@ namespace RushHour {
             #endregion
             
             // Here goes parallel search for the holy grail
-
+            var queue = new ConcurrentQueue<Tuple<Map, char>>();
+            queue.Enqueue(new Tuple<Map, char>(map, '.'));
+            Iterate(queue);
+            foreach (var m in queue) {
+                Console.WriteLine("Permutation of input:");
+                Console.WriteLine(m.Item1.ToString());
+            }
             // Testing input parsing
             while (true) {
                 Console.WriteLine(map.ToString());
@@ -46,7 +52,8 @@ namespace RushHour {
                             dir = Direction.Right;
                             break;
                     }
-                    map = map.makeMove(input[2], dir, int.Parse(input[6].ToString()));
+                    var temp = map.makeMove(input[2], dir, int.Parse(input[6].ToString()));
+                    if (temp != null) map = temp;
 
                     continue;
                 }
@@ -56,7 +63,35 @@ namespace RushHour {
                         Console.WriteLine("Car {0}'s top-left is at {1}, with a {3} orientation and length {2}.", kvp.Key, kvp.Value.Item1, kvp.Value.Item2, kvp.Value.Item3 == Direction.Down ? "vertical" : "horizontal");
                     continue;
                 }
+
+                if (input.StartsWith("H")) {
+                    Console.WriteLine(map.GetHashCode());
+                }
             }
+        }
+
+        private static void Iterate(ConcurrentQueue<Tuple<Map, char>> queue) {
+            Tuple<Map, char> var;
+            while (!queue.TryDequeue(out var)) System.Threading.Thread.Sleep(5);
+            var currentMap = var.Item1;
+            var cars = currentMap.Parse();
+            foreach (var kvp in cars)
+                if (kvp.Key != var.Item2) {
+                    Map move;
+                    bool horizontal = kvp.Value.Item3 == Direction.Right;
+                    for (int i = 1; i < (horizontal ? kvp.Value.Item1.X : kvp.Value.Item1.Y); i++) {
+                        move = currentMap.makeMove(var.Item2, kvp.Value.Item1, kvp.Value.Item3.Invert(), kvp.Value.Item2, i);
+                        if (move != null)
+                            queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
+                    }
+                    for (int i = 1; i < (horizontal ? map.map.GetLength(0) - kvp.Value.Item1.X :  map.map.GetLength(1) - kvp.Value.Item1.Y) ; i++) {
+                        move = currentMap.makeMove(var.Item2, kvp.Value.Item1, kvp.Value.Item3, kvp.Value.Item2, i);
+                        if (move != null)
+                            queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
+                    }
+                }
+            
+
         }
     }
 }

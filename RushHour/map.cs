@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RushHour {
-    class Map {
-        char[,] map;
+    class Map  {
+        internal char[,] map;
+        
         public Map(string[] m) {
             map = new char[m[0].Length, m.Length];
             for (int y = 0; y < m.Length; y++)
@@ -30,6 +31,27 @@ namespace RushHour {
             return result.ToString();
         }
 
+        public override int GetHashCode() {
+            int calc = 0;
+            for (int x = 0; x < map.GetLength(0); x++)
+                for (int y = 0; y < map.GetLength(1); y++)
+                    calc += map[x, y] * (x + 1) / (y + 1);
+            return calc;
+        }
+
+        public override bool Equals(object obj) {
+            if (obj.GetType() == typeof(Map)) {
+                var other = (Map) obj;
+                if (map.GetLength(0) == other.map.GetLength(0) && map.GetLength(1) == other.map.GetLength(1))
+                    for (int x = 0; x < map.GetLength(0); x++)
+                        for (int y = 0; y < map.GetLength(1); y++)
+                            if (map[x, y] != other.map[x, y])
+                                return false;
+                return true;
+            }
+            return false;
+        }
+
         public Map makeMove(char car, Direction d, int dist) {
             char[,] mapResult = new char[map.GetLength(0), map.GetLength(1)];
             Point topLeft = new Point() { X = -1, Y = -1 };
@@ -48,11 +70,21 @@ namespace RushHour {
                         }
                         else if (x == topLeft.X) yLength++; else xLength++;
                     }
+            return makeMove(car, topLeft, d, xLength > 1 ? xLength : yLength, dist);
+        }
+
+        public Map makeMove(char car, Point topLeft, Direction d, int length, int dist) {
+            char[,] mapResult = new char[map.GetLength(0), map.GetLength(1)];
+            var xLength       = d == Direction.Right ? length : 1;
+            var yLength       = xLength > 1          ? 1      : length;
 
             var target = new Point() { X = topLeft.X + d.GetX() * dist, Y = topLeft.Y + d.GetY() * dist };
             for (int x = 0; x < xLength; x++)
                 for (int y = 0; y < yLength; y++)
-                    if (mapResult[target.X + x, target.Y + y] != Globals.emptyTile) { return null; }
+                    if (target.X + x < map.GetLength(0) && 
+                        target.Y + y < map.GetLength(1) &&  
+                        mapResult[target.X + x, target.Y + y] != Globals.emptyTile) 
+                        return null;
                     else
                         mapResult[target.X + x, target.Y + y] = car;
 
