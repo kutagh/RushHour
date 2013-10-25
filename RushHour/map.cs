@@ -53,16 +53,12 @@ namespace RushHour {
         }
 
         public Map makeMove(char car, Direction d, int dist) {
-            char[,] mapResult = new char[map.GetLength(0), map.GetLength(1)];
             Point topLeft = new Point() { X = -1, Y = -1 };
             Point defaultPoint = topLeft;
             int xLength = 0, yLength = 0;
             for (int x = 0; x < map.GetLength(0); x++)
                 for (int y = 0; y < map.GetLength(1); y++)
-                    if (map[x, y] != car) mapResult[x, y] = map[x, y];
-                    else {
-                        mapResult[x, y] = Globals.emptyTile;
-                        var test = topLeft.Equals(defaultPoint);
+                    if (map[x, y] == car) {
                         if (topLeft.Equals(defaultPoint)) {
                             topLeft = new Point() { X = x, Y = y };
                             xLength = 1;
@@ -75,18 +71,23 @@ namespace RushHour {
 
         public Map makeMove(char car, Point topLeft, Direction d, int length, int dist) {
             char[,] mapResult = new char[map.GetLength(0), map.GetLength(1)];
-            var xLength       = d == Direction.Right ? length : 1;
-            var yLength       = xLength > 1          ? 1      : length;
+            var xLength       = d == Direction.Right || d == Direction.Left ? length : 1;
+            var yLength       = xLength > 1                                 ? 1      : length;
+            for (int x = 0; x < map.GetLength(0); x++)
+                for (int y = 0; y < map.GetLength(1); y++)
+                    if (map[x, y] != car) mapResult[x, y] = map[x, y];
+                    else                  mapResult[x, y] = Globals.emptyTile;
 
             var target = new Point() { X = topLeft.X + d.GetX() * dist, Y = topLeft.Y + d.GetY() * dist };
             for (int x = 0; x < xLength; x++)
                 for (int y = 0; y < yLength; y++)
-                    if (target.X + x < map.GetLength(0) && 
-                        target.Y + y < map.GetLength(1) &&  
-                        mapResult[target.X + x, target.Y + y] != Globals.emptyTile) 
-                        return null;
-                    else
-                        mapResult[target.X + x, target.Y + y] = car;
+                    if (target.X + x < map.GetLength(0) &&
+                        target.Y + y < map.GetLength(1))
+                        if (mapResult[target.X + x, target.Y + y] != Globals.emptyTile)
+                            return null;
+                        else
+                            mapResult[target.X + x, target.Y + y] = car;
+                    else return null;
 
 
             return new Map(mapResult);

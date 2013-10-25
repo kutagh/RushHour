@@ -26,7 +26,8 @@ namespace RushHour {
             // Here goes parallel search for the holy grail
             var queue = new ConcurrentQueue<Tuple<Map, char>>();
             queue.Enqueue(new Tuple<Map, char>(map, '.'));
-            Iterate(queue);
+            Iterate(ref queue);
+            Console.WriteLine(queue.Count());
             foreach (var m in queue) {
                 Console.WriteLine("Permutation of input:");
                 Console.WriteLine(m.Item1.ToString());
@@ -70,7 +71,7 @@ namespace RushHour {
             }
         }
 
-        private static void Iterate(ConcurrentQueue<Tuple<Map, char>> queue) {
+        private static void Iterate(ref ConcurrentQueue<Tuple<Map, char>> queue) {
             Tuple<Map, char> var;
             while (!queue.TryDequeue(out var)) System.Threading.Thread.Sleep(5);
             var currentMap = var.Item1;
@@ -80,12 +81,12 @@ namespace RushHour {
                     Map move;
                     bool horizontal = kvp.Value.Item3 == Direction.Right;
                     for (int i = 1; i < (horizontal ? kvp.Value.Item1.X : kvp.Value.Item1.Y); i++) {
-                        move = currentMap.makeMove(var.Item2, kvp.Value.Item1, kvp.Value.Item3.Invert(), kvp.Value.Item2, i);
+                        move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3.Invert(), kvp.Value.Item2, i);
                         if (move != null)
                             queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
                     }
                     for (int i = 1; i < (horizontal ? map.map.GetLength(0) - kvp.Value.Item1.X :  map.map.GetLength(1) - kvp.Value.Item1.Y) ; i++) {
-                        move = currentMap.makeMove(var.Item2, kvp.Value.Item1, kvp.Value.Item3, kvp.Value.Item2, i);
+                        move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3, kvp.Value.Item2, i);
                         if (move != null)
                             queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
                     }
