@@ -58,6 +58,31 @@ namespace RushHour {
             else
                 return null;
         }
+
+        public Dictionary<char, Tuple<Point, int, Direction>> Parse() {
+            var result = new Dictionary<char, Tuple<Point, int, Direction>>();
+            for (int x = 0; x < map.GetLength(0); x++)
+                for (int y = 0; y < map.GetLength(1); y++) {
+                    if (map[x, y] != Globals.emptyTile)
+                        if (!result.ContainsKey(map[x, y])) {
+                            var startPoint = new Point() { X = x, Y = y };
+                            var dir = Direction.Down;
+                            if (x + 1 != map.GetLength(0) && map[x, y] == map[x + 1, y]) dir = Direction.Right;
+                            int length = 1;
+                            var nextX = x + dir.GetX() * length;
+                            var nextY = y + dir.GetY() * length;
+                            while (nextX < map.GetLength(0) && nextY < map.GetLength(1) && map[x, y] == map[nextX, nextY]) {
+                                length++;
+                                nextX = x + dir.GetX() * length;
+                                nextY = y + dir.GetY() * length;
+                            
+                            }
+                            result.Add(map[x, y], new Tuple<Point, int, Direction>(startPoint, length, dir));
+                        }
+                }
+
+            return result;
+        }
     }
     public enum Direction {
         Default,
@@ -77,6 +102,10 @@ namespace RushHour {
         }
         public override int GetHashCode() {
             return base.GetHashCode();
+        }
+
+        public override string ToString() {
+            return string.Format("X: {0}, Y: {1}", X, Y);
         }
     }
 }

@@ -45,6 +45,12 @@ namespace RushHour {
 
                     continue;
                 }
+
+                if (input.StartsWith("L")) {
+                    foreach (var kvp in map.Parse()) 
+                        Console.WriteLine("Car {0}'s top-left is at {1}, with a {3} orientation and length {2}.", kvp.Key, kvp.Value.Item1, kvp.Value.Item2, kvp.Value.Item3 == Direction.Down ? "vertical" : "horizontal");
+                    continue;
+                }
             }
         }
     }
@@ -66,7 +72,7 @@ namespace RushHour {
  * 
  * Benodigdheden:
  * - Map structuur (redelijk af)
- * - Parser van map (redelijk af, moet nog parsen van locaties auto's)
+ * - Parser van map (af)
  * - Permutatie van map generator 
  * - Concurrent boom, d.w.z. boom waar je kunt traversen, nodes aanmaken en connecties maken. Connecties maken moet concurrent werken.
  * 
