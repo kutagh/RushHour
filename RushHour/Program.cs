@@ -21,6 +21,10 @@ namespace RushHour {
             for (int i = 0; i < height; i++) initialConfig[i] = Console.ReadLine();
             map = new Map(initialConfig);
             #endregion
+            
+            // Here goes parallel search for the holy grail
+
+            // Testing input parsing
             while (true) {
                 Console.WriteLine(map.ToString());
                 Console.WriteLine("Please enter a command:");
