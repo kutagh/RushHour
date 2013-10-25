@@ -10,6 +10,7 @@ namespace RushHour {
     class Program {
         static bool outputMode;
         static int targetX, targetY;
+        static Map map;
         static void Main(string[] args) {
             #region Parse input
             outputMode = Console.ReadLine() == "0" ? false : true;
@@ -18,8 +19,33 @@ namespace RushHour {
             targetY = int.Parse(Console.ReadLine());
             var initialConfig = new string[height];
             for (int i = 0; i < height; i++) initialConfig[i] = Console.ReadLine();
+            map = new Map(initialConfig);
             #endregion
+            while (true) {
+                Console.WriteLine(map.ToString());
+                Console.WriteLine("Please enter a command:");
+                var input = Console.ReadLine();
+                if (input.StartsWith("M")) {
+                    Direction dir = Direction.Default;
+                    switch(input[4]){
+                        case 'U': 
+                            dir = Direction.Up;
+                            break;
+                        case 'D': 
+                            dir = Direction.Down;
+                            break;
+                        case 'L':
+                            dir = Direction.Left;
+                            break;
+                        case 'R':
+                            dir = Direction.Right;
+                            break;
+                    }
+                    map = map.makeMove(input[2], dir, int.Parse(input[6].ToString()));
 
+                    continue;
+                }
+            }
         }
     }
 }
