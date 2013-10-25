@@ -41,22 +41,23 @@ namespace RushHour {
                     else {
                         mapResult[x, y] = Globals.emptyTile;
                         var test = topLeft.Equals(defaultPoint);
-                        if (topLeft.Equals(defaultPoint)) { topLeft = new Point() { X = x, Y = y }; xLength = 1; yLength = 1; }
+                        if (topLeft.Equals(defaultPoint)) {
+                            topLeft = new Point() { X = x, Y = y };
+                            xLength = 1;
+                            yLength = 1;
+                        }
                         else if (x == topLeft.X) yLength++; else xLength++;
                     }
 
-            bool valid = true;
             var target = new Point() { X = topLeft.X + d.GetX() * dist, Y = topLeft.Y + d.GetY() * dist };
             for (int x = 0; x < xLength; x++)
-                for (int y = 0; y < yLength;y++ )
-                    if (mapResult[target.X + x, target.Y + y] != Globals.emptyTile) valid = false;
+                for (int y = 0; y < yLength; y++)
+                    if (mapResult[target.X + x, target.Y + y] != Globals.emptyTile) { return null; }
                     else
                         mapResult[target.X + x, target.Y + y] = car;
-            
-            if (valid)
-                return new Map(mapResult);
-            else
-                return null;
+
+
+            return new Map(mapResult);
         }
 
         public Dictionary<char, Tuple<Point, int, Direction>> Parse() {
@@ -66,15 +67,15 @@ namespace RushHour {
                     if (map[x, y] != Globals.emptyTile)
                         if (!result.ContainsKey(map[x, y])) {
                             var startPoint = new Point() { X = x, Y = y };
-                            var dir = Direction.Down;
+                            var dir        = Direction.Down;
                             if (x + 1 != map.GetLength(0) && map[x, y] == map[x + 1, y]) dir = Direction.Right;
                             int length = 1;
-                            var nextX = x + dir.GetX() * length;
-                            var nextY = y + dir.GetY() * length;
+                            var nextX      = x + dir.GetX() * length;
+                            var nextY      = y + dir.GetY() * length;
                             while (nextX < map.GetLength(0) && nextY < map.GetLength(1) && map[x, y] == map[nextX, nextY]) {
+                                nextX      = x + dir.GetX() * length;
+                                nextY      = y + dir.GetY() * length;
                                 length++;
-                                nextX = x + dir.GetX() * length;
-                                nextY = y + dir.GetY() * length;
                             
                             }
                             result.Add(map[x, y], new Tuple<Point, int, Direction>(startPoint, length, dir));

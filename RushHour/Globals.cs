@@ -9,15 +9,15 @@ namespace RushHour {
         public static char emptyTile = '.';
 
         public static int GetX(this Direction d) {
-            if (d == Direction.Left) return -1;
-            if (d == Direction.Right) return 1;
-            return 0;
+            if (d == Direction.Left)    return -1;
+            if (d == Direction.Right)   return 1;
+                                        return 0;
         }
 
         public static int GetY(this Direction d) {
-            if (d == Direction.Up) return -1;
-            if (d == Direction.Down) return 1;
-            return 0;
+            if (d == Direction.Up)      return -1;
+            if (d == Direction.Down)    return 1;
+                                        return 0;
         }
     }
 }

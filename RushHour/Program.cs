@@ -13,12 +13,13 @@ namespace RushHour {
         static Map map;
         static void Main(string[] args) {
             #region Parse input
-            outputMode = Console.ReadLine() == "0" ? false : true;
-            int height = int.Parse(Console.ReadLine());
-            targetX = int.Parse(Console.ReadLine());
-            targetY = int.Parse(Console.ReadLine());
+            outputMode        = Console.ReadLine() == "0" ? false : true;
+            int height        = int.Parse(Console.ReadLine());
+            targetX           = int.Parse(Console.ReadLine());
+            targetY           = int.Parse(Console.ReadLine());
             var initialConfig = new string[height];
-            for (int i = 0; i < height; i++) initialConfig[i] = Console.ReadLine();
+            for (int i = 0; i < height; i++) 
+                initialConfig[i] = Console.ReadLine();
             map = new Map(initialConfig);
             #endregion
             
