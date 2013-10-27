@@ -4,19 +4,21 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 
 namespace RushHour {
     class Program {
         static bool outputMode;
-        static int targetX, targetY;
+        static Point targetLocation;
         static Map map;
         static void Main(string[] args) {
             #region Parse input
-            outputMode        = Console.ReadLine() == "0" ? false : true;
-            int height        = int.Parse(Console.ReadLine());
-            targetX           = int.Parse(Console.ReadLine());
-            targetY           = int.Parse(Console.ReadLine());
+            outputMode           = Console.ReadLine() == "0" ? false : true;
+            int height           = int.Parse(Console.ReadLine());
+            int targetY          = int.Parse(Console.ReadLine());
+            int targetX          = int.Parse(Console.ReadLine());
+            targetLocation       = new Point() { X = targetX, Y = targetY };
             var initialConfig = new string[height];
             for (int i = 0; i < height; i++) 
                 initialConfig[i] = Console.ReadLine();
@@ -24,8 +26,46 @@ namespace RushHour {
             #endregion
             
             // Here goes parallel search for the holy grail
+            var tree = new Tree(map);
+            
+            // testing
+            // var move1 = map.makeMove(Globals.targetCar, Direction.Down, 1);
+            // var move2 = map.makeMove(Globals.targetCar, Direction.Down, 2).makeMove(Globals.targetCar, Direction.Up, 1);
+            // tree.AddNeighbor(map, move1);
+            // var test = tree.Find(move2);
+            // Console.WriteLine("It does {0}work", test == null ? "not " : "");
+
             var queue = new ConcurrentQueue<Tuple<Map, char>>();
             queue.Enqueue(new Tuple<Map, char>(map, '.'));
+            while (!Iterate(queue, tree)) ;
+            if (queue.Count > 0) {
+                // Winning solution inside
+                Console.WriteLine("We found a winning solution");
+                Tuple<Map, char> winning;
+                queue.TryDequeue(out winning);
+                Console.WriteLine(winning.Item1.ToString());
+                Console.WriteLine("Testing shortest path lookup");
+                var stack = tree.FindShortest(winning.Item1);
+                while (stack.Count > 0)
+                    Console.WriteLine(stack.Pop().value);
+            }
+            else {
+                // No solutions
+                Console.WriteLine("We did not find a winning solution");
+            }
+
+            // Console.WriteLine("Tree debugging");
+            // var treeQueue = new Queue<Node<Map>>();
+            // var visited = new List<Node<Map>>();
+            // treeQueue.Enqueue(tree.root);
+            // using (var writer = new StreamWriter("Tree.txt")) {
+            //     while (treeQueue.Count > 0) {
+            //         var current = treeQueue.Dequeue();
+            //         visited.Add(current);
+            //         writer.WriteLine(current.value);
+            //         foreach (var nb in current.neighbors.Where(x => !visited.Contains(x))) treeQueue.Enqueue(nb);
+            //     }
+            // }
             //Iterate(ref queue);
             //Console.WriteLine(queue.Count());
             //foreach (var m in queue) {
@@ -71,28 +111,46 @@ namespace RushHour {
             }
         }
 
-        private static void Iterate(ref ConcurrentQueue<Tuple<Map, char>> queue) {
+        private static bool Iterate(ConcurrentQueue<Tuple<Map, char>> queue, Tree tree) {
             Tuple<Map, char> var;
             while (!queue.TryDequeue(out var)) System.Threading.Thread.Sleep(5);
             var currentMap = var.Item1;
             var cars = currentMap.Parse();
+            if (cars.ContainsKey(Globals.targetCar) && cars[Globals.targetCar].Item1.Equals(targetLocation)) {
+                queue.Enqueue(var); // This was the solution
+                return true;
+            }
             foreach (var kvp in cars)
                 if (kvp.Key != var.Item2) {
                     Map move;
                     bool horizontal = kvp.Value.Item3 == Direction.Right;
                     for (int i = 1; i < (horizontal ? kvp.Value.Item1.X : kvp.Value.Item1.Y); i++) {
                         move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3.Invert(), kvp.Value.Item2, i);
-                        if (move != null)
-                            queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
+                        if (move != null) {
+                            var moveNode = tree.Find(move);
+                            if (moveNode == null) {
+                                tree.AddNeighbor(currentMap, move);
+                                queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
+                            }
+                            else ;// tree.AddNeighbor(currentMap, moveNode);
+                        }
+                        else break;
                     }
-                    for (int i = 1; i < (horizontal ? map.map.GetLength(0) - kvp.Value.Item1.X :  map.map.GetLength(1) - kvp.Value.Item1.Y) ; i++) {
+                    for (int i = 1; i < (horizontal ? map.map.GetLength(0) - kvp.Value.Item1.X : map.map.GetLength(1) - kvp.Value.Item1.Y); i++) {
                         move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3, kvp.Value.Item2, i);
-                        if (move != null)
-                            queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
+                        if (move != null) {
+                            var moveNode = tree.Find(move);
+                            if (moveNode == null) {
+                                tree.AddNeighbor(currentMap, move);
+                                queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
+                            }
+                            else ;// tree.AddNeighbor(currentMap, moveNode);
+                        }
+                        else break;
                     }
                 }
-            
-
+            if (queue.Count == 0) return true; // We don't have anything to add
+            return false; // no solution found yet
         }
     }
 }

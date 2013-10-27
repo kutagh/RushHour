@@ -87,7 +87,7 @@ namespace RushHour {
                             return null;
                         else
                             mapResult[target.X + x, target.Y + y] = car;
-                    else return null;
+                    else if(car != Globals.targetCar) return null;
 
 
             return new Map(mapResult);
@@ -116,6 +116,24 @@ namespace RushHour {
                 }
 
             return result;
+        }
+
+        public static Tuple<char, Direction, int> GetMoveMade(Map origin, Map after) {
+            var originCars = origin.Parse();
+            var afterCars = after.Parse();
+
+            foreach (var key in originCars.Keys) {
+                var origPos = originCars[key].Item1;
+                var afterPos = afterCars[key].Item1;
+                if (origPos.Equals(afterPos))
+                    continue;
+                var dir = (origPos.X > afterPos.X || origPos.Y > afterPos.Y) ? originCars[key].Item3 : originCars[key].Item3.Invert();
+                var dist = (origPos.X != afterPos.X) ? origPos.X - afterPos.X : origPos.Y - afterPos.Y;
+                if (dist < 0) dist *= -1;
+
+                return new Tuple<char, Direction, int>(key, dir, dist);
+            }
+            return null;
         }
     }
     public enum Direction {
