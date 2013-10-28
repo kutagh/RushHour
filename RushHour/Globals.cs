@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace RushHour {
     static class Globals {
-        public static char emptyTile = '.';
-        public static char targetCar = 'x';
+        public static char EmptyTile = '.';
+        public static char TargetCar = 'x';
+        public static Map NoSolutions = new Map(new string[] { "" });
 
         public static int GetX(this Direction d) {
             if (d == Direction.Left)    return -1;

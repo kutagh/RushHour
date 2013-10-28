@@ -76,18 +76,18 @@ namespace RushHour {
             for (int x = 0; x < map.GetLength(0); x++)
                 for (int y = 0; y < map.GetLength(1); y++)
                     if (map[x, y] != car) mapResult[x, y] = map[x, y];
-                    else                  mapResult[x, y] = Globals.emptyTile;
+                    else                  mapResult[x, y] = Globals.EmptyTile;
 
             var target = new Point() { X = topLeft.X + d.GetX() * dist, Y = topLeft.Y + d.GetY() * dist };
             for (int x = 0; x < xLength; x++)
                 for (int y = 0; y < yLength; y++)
                     if (target.X + x < map.GetLength(0) &&
                         target.Y + y < map.GetLength(1))
-                        if (mapResult[target.X + x, target.Y + y] != Globals.emptyTile)
+                        if (mapResult[target.X + x, target.Y + y] != Globals.EmptyTile)
                             return null;
                         else
                             mapResult[target.X + x, target.Y + y] = car;
-                    else if(car != Globals.targetCar) return null;
+                    else if(car != Globals.TargetCar) return null;
 
 
             return new Map(mapResult);
@@ -97,7 +97,7 @@ namespace RushHour {
             var result = new Dictionary<char, Tuple<Point, int, Direction>>();
             for (int x = 0; x < map.GetLength(0); x++)
                 for (int y = 0; y < map.GetLength(1); y++) {
-                    if (map[x, y] != Globals.emptyTile)
+                    if (map[x, y] != Globals.EmptyTile)
                         if (!result.ContainsKey(map[x, y])) {
                             var startPoint = new Point() { X = x, Y = y };
                             var dir        = Direction.Down;

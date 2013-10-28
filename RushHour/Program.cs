@@ -37,15 +37,14 @@ namespace RushHour {
 
             var queue = new ConcurrentQueue<Tuple<Map, char>>();
             queue.Enqueue(new Tuple<Map, char>(map, '.'));
-            while (!Iterate(queue, tree)) ;
-            if (queue.Count > 0) {
+            Map solution = null;
+            while (solution == null) solution = Iterate(queue, tree);
+            if (solution != Globals.NoSolutions) {
                 // Winning solution inside
                 Console.WriteLine("We found a winning solution");
-                Tuple<Map, char> winning;
-                queue.TryDequeue(out winning);
-                Console.WriteLine(winning.Item1.ToString());
+                Console.WriteLine(solution.ToString());
                 Console.WriteLine("Testing shortest path lookup");
-                var stack = tree.FindShortest(winning.Item1);
+                var stack = tree.FindShortest(solution);
                 while (stack.Count > 0)
                     Console.WriteLine(stack.Pop().value);
             }
@@ -111,15 +110,13 @@ namespace RushHour {
             }
         }
 
-        private static bool Iterate(ConcurrentQueue<Tuple<Map, char>> queue, Tree tree) {
+        private static Map Iterate(ConcurrentQueue<Tuple<Map, char>> queue, Tree tree) {
             Tuple<Map, char> var;
             while (!queue.TryDequeue(out var)) System.Threading.Thread.Sleep(5);
             var currentMap = var.Item1;
             var cars = currentMap.Parse();
-            if (cars.ContainsKey(Globals.targetCar) && cars[Globals.targetCar].Item1.Equals(targetLocation)) {
-                queue.Enqueue(var); // This was the solution
-                return true;
-            }
+            if (cars.ContainsKey(Globals.TargetCar) && cars[Globals.TargetCar].Item1.Equals(targetLocation)) 
+                return currentMap;
             foreach (var kvp in cars)
                 if (kvp.Key != var.Item2) {
                     Map move;
@@ -149,8 +146,8 @@ namespace RushHour {
                         else break;
                     }
                 }
-            if (queue.Count == 0) return true; // We don't have anything to add
-            return false; // no solution found yet
+            if (queue.Count == 0) return Globals.NoSolutions; // We don't have anything to add
+            return null; // no solution found yet
         }
     }
 }
