@@ -24,7 +24,7 @@ namespace RushHour {
                 initialConfig[i] = Console.ReadLine();
             map = new Map(initialConfig);
             #endregion
-            
+
             // Here goes parallel search for the holy grail
             var tree = new Tree(map);
             
@@ -115,19 +115,21 @@ namespace RushHour {
             while (!queue.TryDequeue(out var)) System.Threading.Thread.Sleep(5);
             var currentMap = var.Item1;
             var cars = currentMap.Parse();
+          //Console.WriteLine("Checking:\n" + currentMap);
             if (cars.ContainsKey(Globals.TargetCar) && cars[Globals.TargetCar].Item1.Equals(targetLocation)) 
                 return currentMap;
             foreach (var kvp in cars)
                 if (kvp.Key != var.Item2) {
                     Map move;
                     bool horizontal = kvp.Value.Item3 == Direction.Right;
-                    for (int i = 1; i < (horizontal ? kvp.Value.Item1.X : kvp.Value.Item1.Y); i++) {
+                    for (int i = 1; i <= (horizontal ? kvp.Value.Item1.X : kvp.Value.Item1.Y); i++) {
                         move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3.Invert(), kvp.Value.Item2, i);
                         if (move != null) {
                             var moveNode = tree.Find(move);
                             if (moveNode == null) {
                                 tree.AddNeighbor(currentMap, move);
                                 queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
+                              //Console.WriteLine("Queued:\n" + move);
                             }
                             else ;// tree.AddNeighbor(currentMap, moveNode);
                         }
@@ -140,6 +142,7 @@ namespace RushHour {
                             if (moveNode == null) {
                                 tree.AddNeighbor(currentMap, move);
                                 queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
+                              //Console.WriteLine("Queued:\n" + move);
                             }
                             else ;// tree.AddNeighbor(currentMap, moveNode);
                         }

@@ -87,7 +87,7 @@ namespace RushHour {
                             return null;
                         else
                             mapResult[target.X + x, target.Y + y] = car;
-                    else if(car != Globals.TargetCar) return null;
+                    else /*if(car != Globals.TargetCar)*/ return null;
 
 
             return new Map(mapResult);
