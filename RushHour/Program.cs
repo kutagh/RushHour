@@ -115,24 +115,47 @@ namespace RushHour {
             while (!queue.TryDequeue(out var)) System.Threading.Thread.Sleep(5);
             var currentMap = var.Item1;
             var cars = currentMap.Parse();
-          //Console.WriteLine("Checking:\n" + currentMap);
+          Console.WriteLine("Checking:\n" + currentMap);
             if (cars.ContainsKey(Globals.TargetCar) && cars[Globals.TargetCar].Item1.Equals(targetLocation)) 
                 return currentMap;
             foreach (var kvp in cars)
                 if (kvp.Key != var.Item2) {
                     Map move;
                     bool horizontal = kvp.Value.Item3 == Direction.Right;
+                    //all moves to the left or above the car
                     for (int i = 1; i <= (horizontal ? kvp.Value.Item1.X : kvp.Value.Item1.Y); i++) {
                         move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3.Invert(), kvp.Value.Item2, i);
                         if (move != null) {
+<<<<<<< HEAD
                             NewMethod(queue, tree, currentMap, kvp, move);
+=======
+                            var moveNode = tree.Find(move);
+                            if (moveNode == null)               //this specific permutation of the board hasn't been found yet
+                            {
+                                tree.AddNeighbor(currentMap, move);
+                                queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
+                                Console.WriteLine("Queued:\n" + move);
+                            }
+                            else tree.rehangNeighbors(currentMap, moveNode);    //we have allready seen this permutation, maybe rehang some nodes?
+>>>>>>> work
                         }
                         else break;
                     }
+                    //all moves to the right or below the car
                     for (int i = 1; i < (horizontal ? map.map.GetLength(0) - kvp.Value.Item1.X : map.map.GetLength(1) - kvp.Value.Item1.Y); i++) {
                         move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3, kvp.Value.Item2, i);
                         if (move != null) {
+<<<<<<< HEAD
                             NewMethod(queue, tree, currentMap, kvp, move);
+=======
+                            var moveNode = tree.Find(move);
+                            if (moveNode == null) {
+                                tree.AddNeighbor(currentMap, move);
+                                queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
+                              Console.WriteLine("Queued:\n" + move);
+                            }
+                            else tree.rehangNeighbors(currentMap, moveNode);
+>>>>>>> work
                         }
                         else break;
                     }
