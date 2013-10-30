@@ -4,18 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Node = RushHour.Node<RushHour.Map>;
 
 namespace RushHour {
     class Tree {
-        public Node<Map> root { get; protected set; }
+        public Node root { get; protected set; }
 
         public Tree(Map initialConfiguration) {
-            root = new Node<Map>(initialConfiguration);
+            root = new Node(initialConfiguration);
         }
 
-        public Node<Map> Find(Map toFind) {
-            var queue = new Queue<Node<Map>>();
-            var visited = new List<Node<Map>>();
+        public Node Find(Map toFind) {
+            var queue = new Queue<Node>();
+            var visited = new List<Node>();
             queue.Enqueue(root);
             while (queue.Count > 0) {
                 var current = queue.Dequeue();
@@ -33,20 +34,20 @@ namespace RushHour {
             
         }
 
-        public void AddNeighbor(Map addTo, Node<Map> toAdd) {
+        public void AddNeighbor(Map addTo, Node toAdd) {
             var origin = Find(addTo);
             if (origin == null || origin.neighbors.Contains(toAdd)) return; // Unlikely
             origin.AddNeighbor(toAdd);
         }
 
-        public Stack<Node<Map>> FindShortest(Map target) {
-            var stack = new Stack<Node<Map>>();
-            var visited = new List<Node<Map>>();
+        public Stack<Node> FindShortest(Map target) {
+            var stack = new Stack<Node>();
+            var visited = new List<Node>();
             stack.Push(root);
             Iterate(stack, visited, target);
             return stack;
         }
-        bool Iterate(Stack<Node<Map>> stack, List<Node<Map>> visited, Map target) {
+        bool Iterate(Stack<Node> stack, List<Node> visited, Map target) {
             var current = stack.Peek();
             visited.Add(current);
             foreach (var nb in current.neighbors.Where(x => !visited.Contains(x))) {

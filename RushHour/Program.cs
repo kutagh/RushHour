@@ -170,10 +170,11 @@ namespace RushHour {
  * Iteraties kunnen parallel worden gedaan, zolang de queue niet leeg is.
  * 
  * Benodigdheden:
- * - Map structuur (redelijk af)
+ * - Map structuur (af)
  * - Parser van map (af)
- * - Permutatie van map generator 
+ * - Permutatie van map generator (af)
  * - Concurrent boom, d.w.z. boom waar je kunt traversen, nodes aanmaken en connecties maken. Connecties maken moet concurrent werken.
+ * - Paralleliseren
  * 
  * Optioneel:
  * - Concurrent priority queue maken
