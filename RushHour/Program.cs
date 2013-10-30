@@ -125,38 +125,28 @@ namespace RushHour {
                     //all moves to the left or above the car
                     for (int i = 1; i <= (horizontal ? kvp.Value.Item1.X : kvp.Value.Item1.Y); i++) {
                         move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3.Invert(), kvp.Value.Item2, i);
-                        if (move != null) {
-<<<<<<< HEAD
-                            NewMethod(queue, tree, currentMap, kvp, move);
-=======
-                            var moveNode = tree.Find(move);
-                            if (moveNode == null)               //this specific permutation of the board hasn't been found yet
-                            {
-                                tree.AddNeighbor(currentMap, move);
-                                queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
-                                Console.WriteLine("Queued:\n" + move);
-                            }
-                            else tree.rehangNeighbors(currentMap, moveNode);    //we have allready seen this permutation, maybe rehang some nodes?
->>>>>>> work
-                        }
+                        if (move != null) NewMethod(queue, tree, currentMap, kvp, move);
+                            //var moveNode = tree.Find(move);
+                            //if (moveNode == null)               //this specific permutation of the board hasn't been found yet
+                            //{
+                            //    tree.AddNeighbor(currentMap, move);
+                            //    queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
+                            //    Console.WriteLine("Queued:\n" + move);
+                            //}
+                            //else tree.rehangNeighbors(currentMap, moveNode);    //we have allready seen this permutation, maybe rehang some nodes?
                         else break;
                     }
                     //all moves to the right or below the car
                     for (int i = 1; i < (horizontal ? map.map.GetLength(0) - kvp.Value.Item1.X : map.map.GetLength(1) - kvp.Value.Item1.Y); i++) {
                         move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3, kvp.Value.Item2, i);
-                        if (move != null) {
-<<<<<<< HEAD
-                            NewMethod(queue, tree, currentMap, kvp, move);
-=======
-                            var moveNode = tree.Find(move);
-                            if (moveNode == null) {
-                                tree.AddNeighbor(currentMap, move);
-                                queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
-                              Console.WriteLine("Queued:\n" + move);
-                            }
-                            else tree.rehangNeighbors(currentMap, moveNode);
->>>>>>> work
-                        }
+                        if (move != null) NewMethod(queue, tree, currentMap, kvp, move);
+                            //var moveNode = tree.Find(move);
+                            //if (moveNode == null) {
+                            //    tree.AddNeighbor(currentMap, move);
+                            //    queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
+                            //    Console.WriteLine("Queued:\n" + move);
+                            //}
+                            //else tree.rehangNeighbors(currentMap, moveNode);
                         else break;
                     }
                 }
@@ -169,9 +159,9 @@ namespace RushHour {
             if (moveNode == null) {
                 tree.AddNeighbor(currentMap, move);
                 queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
-                //Console.WriteLine("Queued:\n" + move);
+                Console.WriteLine("Queued:\n" + move);
             }
-            else ;// tree.AddNeighbor(currentMap, moveNode);
+            else tree.rehangNeighbors(currentMap, moveNode);
         }
     }
 }

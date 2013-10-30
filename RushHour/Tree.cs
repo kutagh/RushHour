@@ -13,23 +13,21 @@ namespace RushHour {
         public Dictionary<Map, Node<Map>> mapDict = new Dictionary<Map,Node<Map>>();
 
         public Tree(Map initialConfiguration) {
-<<<<<<< HEAD
-            root = new Node(initialConfiguration);
+            root = new Node(initialConfiguration,0);
         }
 
-        public Node Find(Map toFind) {
-            var queue = new Queue<Node>();
-            var visited = new List<Node>();
-            queue.Enqueue(root);
-            while (queue.Count > 0) {
-                var current = queue.Dequeue();
-                if (current.value.Equals(toFind)) return current;
-                visited.Add(current);
-                foreach (var nb in current.neighbors.Where(x => !visited.Contains(x))) queue.Enqueue(nb);
-            }
-=======
-            root = new Node<Map>(initialConfiguration, 0);
-        }
+        //public Node Find(Map toFind) {
+        //    var queue = new Queue<Node>();
+        //    var visited = new List<Node>();
+        //    queue.Enqueue(root);
+        //    while (queue.Count > 0) {
+        //        var current = queue.Dequeue();
+        //        if (current.value.Equals(toFind)) return current;
+        //        visited.Add(current);
+        //        foreach (var nb in current.neighbors.Where(x => !visited.Contains(x))) queue.Enqueue(nb);
+        //    }
+        //    root = new Node<Map>(initialConfiguration, 0);
+        //}
 
         public Node<Map> Find(Map toFind) {
             if (mapDict.ContainsKey(toFind))   //O(1) [hash tabel: je vind (bijna) direct wat je zoekt]
@@ -44,7 +42,6 @@ namespace RushHour {
             //    visited.Add(current);
             //    foreach (var nb in current.neighbors.Where(x => !visited.Contains(x))) queue.Enqueue(nb);
             //}
->>>>>>> work
             return null;
         }
 
