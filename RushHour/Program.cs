@@ -125,32 +125,30 @@ namespace RushHour {
                     for (int i = 1; i <= (horizontal ? kvp.Value.Item1.X : kvp.Value.Item1.Y); i++) {
                         move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3.Invert(), kvp.Value.Item2, i);
                         if (move != null) {
-                            var moveNode = tree.Find(move);
-                            if (moveNode == null) {
-                                tree.AddNeighbor(currentMap, move);
-                                queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
-                              //Console.WriteLine("Queued:\n" + move);
-                            }
-                            else ;// tree.AddNeighbor(currentMap, moveNode);
+                            NewMethod(queue, tree, currentMap, kvp, move);
                         }
                         else break;
                     }
                     for (int i = 1; i < (horizontal ? map.map.GetLength(0) - kvp.Value.Item1.X : map.map.GetLength(1) - kvp.Value.Item1.Y); i++) {
                         move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3, kvp.Value.Item2, i);
                         if (move != null) {
-                            var moveNode = tree.Find(move);
-                            if (moveNode == null) {
-                                tree.AddNeighbor(currentMap, move);
-                                queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
-                              //Console.WriteLine("Queued:\n" + move);
-                            }
-                            else ;// tree.AddNeighbor(currentMap, moveNode);
+                            NewMethod(queue, tree, currentMap, kvp, move);
                         }
                         else break;
                     }
                 }
             if (queue.Count == 0) return Globals.NoSolutions; // We don't have anything to add
             return null; // no solution found yet
+        }
+
+        private static void NewMethod(ConcurrentQueue<Tuple<Map, char>> queue, Tree tree, Map currentMap, KeyValuePair<char, Tuple<Point, int, Direction>> kvp, Map move) {
+            var moveNode = tree.Find(move);
+            if (moveNode == null) {
+                tree.AddNeighbor(currentMap, move);
+                queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
+                //Console.WriteLine("Queued:\n" + move);
+            }
+            else ;// tree.AddNeighbor(currentMap, moveNode);
         }
     }
 }
