@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
 
@@ -12,7 +13,19 @@ namespace RushHour {
         static bool outputMode;
         static Point targetLocation;
         static Map map;
+
+        static Tree tree;
+        static List<ConcurrentQueue<Tuple<Map, char>>> queues = new List<ConcurrentQueue<Tuple<Map, char>>>();
+        static List<IntHelp> workersOnLvl = new List<IntHelp>();
+        static int currQue = 0;
+
+        private const int NumTasks = 1;
+
         static void Main(string[] args) {
+
+            Console.WriteLine(new Map(new char[2, 2]).GetHashCode());
+            Console.WriteLine(new Map(new char[2, 2]).GetHashCode());
+
             #region Parse input
             outputMode           = Console.ReadLine() == "0" ? false : true;
             int height           = int.Parse(Console.ReadLine());
@@ -26,7 +39,7 @@ namespace RushHour {
             #endregion
 
             // Here goes parallel search for the holy grail
-            var tree = new Tree(map);
+            tree = new Tree(map);
             
             // testing
             // var move1 = map.makeMove(Globals.targetCar, Direction.Down, 1);
@@ -35,16 +48,24 @@ namespace RushHour {
             // var test = tree.Find(move2);
             // Console.WriteLine("It does {0}work", test == null ? "not " : "");
 
-            var queue = new ConcurrentQueue<Tuple<Map, char>>();
-            queue.Enqueue(new Tuple<Map, char>(map, '.'));
-            Map solution = null;
-            while (solution == null) solution = Iterate(queue, tree);
-            if (solution != Globals.NoSolutions) {
+            queues.Add(new ConcurrentQueue<Tuple<Map, char>>());
+            queues[0].Enqueue(new Tuple<Map, char>(map, '.'));
+            workersOnLvl.Add(new IntHelp(0));
+
+            Task[] tasks = new Task[NumTasks];
+            for (int i = 0; i < NumTasks; i++)
+            {
+                int n = i;  //[c# multithreaded bug]
+                tasks[i] = Task.Factory.StartNew(() => worker(n));
+            }
+            Task.WaitAny(tasks);
+
+            if (Globals.Solution != Globals.NoSolutions) {
                 // Winning solution inside
                 Console.WriteLine("We found a winning solution");
-                Console.WriteLine(solution.ToString());
+                Console.WriteLine(Globals.Solution.ToString());
                 Console.WriteLine("Testing shortest path lookup");
-                var stack = tree.FindShortest(solution);
+                var stack = tree.FindShortest(Globals.Solution);
                 while (stack.Count > 0)
                     Console.WriteLine(stack.Pop().value);
             }
@@ -110,12 +131,25 @@ namespace RushHour {
             }
         }
 
-        private static Map Iterate(ConcurrentQueue<Tuple<Map, char>> queue, Tree tree) {
+        private static void worker(int tasknr) //a concurrent worker
+        {
+            Map solution = null;
+            while (solution == null)
+            {
+                if (queues.Count <= currQue + 1) { queues.Add(new ConcurrentQueue<Tuple<Map, char>>()); workersOnLvl.Add(new IntHelp(0)); }
+                if (workFin(currQue)) currQue++;
+                solution = Iterate(currQue, tree);
+            }
+            Globals.Solution = solution;
+        }
+
+        private static Map Iterate(int workOnQue, Tree tree) {
             Tuple<Map, char> var;
-            while (!queue.TryDequeue(out var)) System.Threading.Thread.Sleep(5);
+            Interlocked.Increment(ref workersOnLvl[currQue].value);
+            while (!queues[workOnQue].TryDequeue(out var)) System.Threading.Thread.Sleep(5);
             var currentMap = var.Item1;
             var cars = currentMap.Parse();
-          Console.WriteLine("Checking:\n" + currentMap);
+          //Console.WriteLine("Checking:\n" + currentMap);
             if (cars.ContainsKey(Globals.TargetCar) && cars[Globals.TargetCar].Item1.Equals(targetLocation)) 
                 return currentMap;
             foreach (var kvp in cars)
@@ -125,41 +159,52 @@ namespace RushHour {
                     //all moves to the left or above the car
                     for (int i = 1; i <= (horizontal ? kvp.Value.Item1.X : kvp.Value.Item1.Y); i++) {
                         move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3.Invert(), kvp.Value.Item2, i);
-                        if (move != null) NewMethod(queue, tree, currentMap, kvp, move);
-                            //var moveNode = tree.Find(move);
-                            //if (moveNode == null)               //this specific permutation of the board hasn't been found yet
-                            //{
-                            //    tree.AddNeighbor(currentMap, move);
-                            //    queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
-                            //    Console.WriteLine("Queued:\n" + move);
-                            //}
-                            //else tree.rehangNeighbors(currentMap, moveNode);    //we have allready seen this permutation, maybe rehang some nodes?
+                        if (move != null) NewMethod(workOnQue, tree, currentMap, kvp, move);
                         else break;
                     }
                     //all moves to the right or below the car
                     for (int i = 1; i < (horizontal ? map.map.GetLength(0) - kvp.Value.Item1.X : map.map.GetLength(1) - kvp.Value.Item1.Y); i++) {
                         move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3, kvp.Value.Item2, i);
-                        if (move != null) NewMethod(queue, tree, currentMap, kvp, move);
-                            //var moveNode = tree.Find(move);
-                            //if (moveNode == null) {
-                            //    tree.AddNeighbor(currentMap, move);
-                            //    queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
-                            //    Console.WriteLine("Queued:\n" + move);
-                            //}
-                            //else tree.rehangNeighbors(currentMap, moveNode);
+                        if (move != null) NewMethod(workOnQue, tree, currentMap, kvp, move);
                         else break;
                     }
                 }
-            if (queue.Count == 0) return Globals.NoSolutions; // We don't have anything to add
+            Interlocked.Decrement(ref workersOnLvl[currQue].value);
+            if (!workToDo(workOnQue)) return Globals.NoSolutions; // We don't have anything to add
             return null; // no solution found yet
         }
 
-        private static void NewMethod(ConcurrentQueue<Tuple<Map, char>> queue, Tree tree, Map currentMap, KeyValuePair<char, Tuple<Point, int, Direction>> kvp, Map move) {
+        private static bool workToDo(int workOnQue) //is there still work left? (either to be done or being done)
+        {
+            if (queues.Count > workOnQue + 1)       
+            {
+                if (workersOnLvl[workOnQue+1].value > 0) return true;
+                else if (!queues[workOnQue+1].IsEmpty) return true;
+            }
+            if (workersOnLvl[workOnQue].value > 0) return true;
+            else if (!queues[workOnQue].IsEmpty) return true;
+            return false;
+        }
+
+        private static bool workFin(int currQue) //can we proceed to the next layer? i.e.: is the previous layer done and, if so, is there work to be done on this layer left?
+        {
+            if (currQue > 0)
+            {
+                if (workersOnLvl[currQue - 1].value > 0) return false;
+                if (!queues[currQue - 1].IsEmpty) throw new Exception(); //return false; //what is this thread even doing here! he is in the wrong layer!
+            }
+            if (!queues[currQue].IsEmpty) return false;
+            return true;    //voorgaande laag is afgewerkt en degene waar je op staat is accounted for door andere threads -> volgende laag!
+        }
+
+        private static void NewMethod(int workOnQue, Tree tree, Map currentMap, KeyValuePair<char, Tuple<Point, int, Direction>> kvp, Map move) {
             var moveNode = tree.Find(move);
             if (moveNode == null) {
-                tree.AddNeighbor(currentMap, move);
-                queue.Enqueue(new Tuple<Map, char>(move, kvp.Key));
-                Console.WriteLine("Queued:\n" + move);
+                //tree.AddNeighbor(currentMap, move);
+                tree.Add(currentMap, move);
+                if (queues.Count <= workOnQue + 1) { queues.Add(new ConcurrentQueue<Tuple<Map, char>>()); workersOnLvl.Add(new IntHelp(0)); }
+                queues[workOnQue+1].Enqueue(new Tuple<Map, char>(move, kvp.Key));
+              //Console.WriteLine("Queued:\n" + move);
             }
             else tree.rehangNeighbors(currentMap, moveNode);
         }

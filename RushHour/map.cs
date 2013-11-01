@@ -35,7 +35,7 @@ namespace RushHour {
             int calc = 0;
             for (int x = 0; x < map.GetLength(0); x++)
                 for (int y = 0; y < map.GetLength(1); y++)
-                    calc += map[x, y] * (x + 1) / (y + 1);
+                    calc += map[x, y] * (x + 1) * (y + 1);
             return calc;
         }
 

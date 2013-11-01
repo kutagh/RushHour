@@ -14,6 +14,7 @@ namespace RushHour {
 
         public Tree(Map initialConfiguration) {
             root = new Node(initialConfiguration,0);
+            mapDict.Add(initialConfiguration, root);
         }
 
         //public Node Find(Map toFind) {
@@ -45,19 +46,28 @@ namespace RushHour {
             return null;
         }
 
-        public void AddNeighbor(Map addTo, Map toAdd) {
-            var origin = Find(addTo);
-            if (origin == null || origin.FindNeighbor(toAdd) != null) return; // Unlikely
-            origin.AddNeighbor(toAdd);
-            mapDict.Add(toAdd, origin.FindNeighbor(toAdd));
+        public void Add(Map addto, Map toAdd)
+        {
+            var origin = Find(addto);
+            if (origin == null) throw new Exception(); // return; //unlikely
+            mapDict.Add(toAdd, new Node(toAdd, origin.depth + 1, origin));
         }
 
-        public void AddNeighbor(Map addTo, Node toAdd) {
-            var origin = Find(addTo);
-            if (origin == null || origin.neighbors.Contains(toAdd)) return; // Unlikely
-            origin.AddNeighbor(toAdd);
-            mapDict.Add(toAdd.value, toAdd);
-        }
+        //public void AddNeighbor(Map addTo, Map toAdd)
+        //{
+        //    var origin = Find(addTo);
+        //    if (origin == null || origin.FindNeighbor(toAdd) != null) return; // Unlikely
+        //    origin.AddNeighbor(toAdd);
+        //    mapDict.Add(toAdd, origin.FindNeighbor(toAdd));
+        //}
+
+        //public void AddNeighbor(Map addTo, Node toAdd)
+        //{
+        //    var origin = Find(addTo);
+        //    if (origin == null || origin.neighbors.Contains(toAdd)) return; // Unlikely
+        //    origin.AddNeighbor(toAdd);
+        //    mapDict.Add(toAdd.value, toAdd);
+        //}
 
         public void rehangNeighbors(Map key, Node<Map> existingLoc) {
             Node<Map> prevBoard = Find(key);
@@ -66,10 +76,10 @@ namespace RushHour {
                 var prevParent = existingLoc.parent;    //the previous parent
                 existingLoc.parent = prevBoard;         //new parent
                 existingLoc.depth = prevBoard.depth + 1;//new depth (get from new parent)
-                existingLoc.AddNeighbor(prevBoard);     //add new parent to connections
-                existingLoc.removeNeighbor(prevParent); //remove old parent from connections
-                prevParent.removeNeighbor(existingLoc); //remove from connections of old parent
-                prevBoard.AddNeighbor(existingLoc);     //add to connections of new parent
+                //existingLoc.AddNeighbor(prevBoard);     //add new parent to connections
+                //existingLoc.removeNeighbor(prevParent); //remove old parent from connections
+                //prevParent.removeNeighbor(existingLoc); //remove from connections of old parent
+                //prevBoard.AddNeighbor(existingLoc);     //add to connections of new parent
             }
         }
 
@@ -77,54 +87,61 @@ namespace RushHour {
             var stack = new Stack<Node>();
             var visited = new List<Node>();
             stack.Push(root);
-            Iterate(stack, visited, target);
+            //Iterate(stack, visited, target);
             return stack;
         }
-        bool Iterate(Stack<Node> stack, List<Node> visited, Map target) {
-            var current = stack.Peek();
-            visited.Add(current);
-            foreach (var nb in current.neighbors.Where(x => !visited.Contains(x))) {
-                stack.Push(nb);
-                if (nb.value == target) return true;
-                if (Iterate(stack, visited, target))
-                    return true;
-            }
-            stack.Pop();
-            return false;
-        }
+        //bool Iterate(Stack<Node> stack, List<Node> visited, Map target) {
+        //    var current = stack.Peek();
+        //    visited.Add(current);
+        //    foreach (var nb in current.neighbors.Where(x => !visited.Contains(x))) {
+        //        stack.Push(nb);
+        //        if (nb.value == target) return true;
+        //        if (Iterate(stack, visited, target))
+        //            return true;
+        //    }
+        //    stack.Pop();
+        //    return false;
+        //}
     }
 
 
     class Node<T> {
         internal T value;
-        internal List<Node<T>> neighbors;
+        //internal List<Node<T>> neighbors;
 
         internal Node<T> parent = null;
         internal int depth;
         
         public Node(T value, int deep) {
-            neighbors = new List<Node<T>>();
+            //neighbors = new List<Node<T>>();
             this.value = value;
             depth = deep;
         }
 
-        public virtual void AddNeighbor(Node<T> node, bool sendToNB = true) {
-            this.neighbors.Add(node);
-            if (sendToNB)
-                node.AddNeighbor(this, false);
+        public Node(T value, int deep, Node<T> p)
+        {
+            this.value = value;
+            depth = deep;
+            parent = p;
         }
 
-        public virtual void AddNeighbor(T value) {
-            AddNeighbor(new Node<T>(value, depth + 1));
-        }
+        //public virtual void AddNeighbor(Node<T> node, bool sendToNB = true) {
+        //    this.neighbors.Add(node);
+        //    if (sendToNB)
+        //        node.AddNeighbor(this, false);
+        //}
 
-        public void removeNeighbor(Node<T> node) {
-            if (node == parent) throw new Exception();  //something must have gone wrong in rehanging
-            neighbors.Remove(node);
-        }
+        //public virtual void AddNeighbor(T value) {
+        //    AddNeighbor(new Node<T>(value, depth + 1));
+        //}
 
-        public virtual Node<T> FindNeighbor(T value) {
-            return neighbors.FirstOrDefault(x => x.value.Equals(value));
-        }
+        //public void removeNeighbor(Node<T> node) {
+        //    if (node == parent) throw new Exception();  //something must have gone wrong in rehanging
+        //    neighbors.Remove(node);
+        //}
+
+        //public virtual Node<T> FindNeighbor(T value) {
+        //    return neighbors.FirstOrDefault(x => x.value.Equals(value));
+        //}
     }
 }

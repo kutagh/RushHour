@@ -8,6 +8,7 @@ namespace RushHour {
     static class Globals {
         public static char EmptyTile = '.';
         public static char TargetCar = 'x';
+        public static Map Solution = null;
         public static Map NoSolutions = new Map(new string[] { "" });
 
         public static int GetX(this Direction d) {
@@ -30,6 +31,16 @@ namespace RushHour {
                 case Direction.Right : return Direction.Left;
                 default              : return Direction.Default;
             }
+        }
+    }
+
+    class IntHelp   //helper class to fix this: "A property, indexer or dynamic member access may not be passed as an out or ref parameter."
+    {
+        public int value;
+
+        public IntHelp(int n)
+        {
+            value = n;
         }
     }
 }
