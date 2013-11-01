@@ -12,6 +12,8 @@ namespace RushHour {
 
         public Dictionary<Map, Node<Map>> mapDict = new Dictionary<Map,Node<Map>>();
 
+        static SpinLock DLOCK = new SpinLock();
+
         public Tree(Map initialConfiguration) {
             root = new Node(initialConfiguration,0);
             mapDict.Add(initialConfiguration, root);
@@ -48,9 +50,12 @@ namespace RushHour {
 
         public void Add(Map addto, Map toAdd)
         {
-            var origin = Find(addto);
-            if (origin == null) throw new Exception(); // return; //unlikely
-            mapDict.Add(toAdd, new Node(toAdd, origin.depth + 1, origin));
+            bool dref = false;
+            DLOCK.Enter(ref dref);
+                var origin = Find(addto);
+                if (origin == null) throw new Exception(); // return; //unlikely
+                mapDict.Add(toAdd, new Node(toAdd, origin.depth + 1, origin));
+            DLOCK.Exit();
         }
 
         //public void AddNeighbor(Map addTo, Map toAdd)

@@ -14,6 +14,8 @@ namespace RushHour {
         static Point targetLocation;
         static Map map;
 
+        static SpinLock QCLOCK = new SpinLock();
+
         static Tree tree;
         static List<ConcurrentQueue<Tuple<Map, char>>> queues = new List<ConcurrentQueue<Tuple<Map, char>>>();
         static List<IntHelp> workersOnLvl = new List<IntHelp>();
@@ -22,9 +24,6 @@ namespace RushHour {
         private const int NumTasks = 1;
 
         static void Main(string[] args) {
-
-            Console.WriteLine(new Map(new char[2, 2]).GetHashCode());
-            Console.WriteLine(new Map(new char[2, 2]).GetHashCode());
 
             #region Parse input
             outputMode           = Console.ReadLine() == "0" ? false : true;
@@ -136,19 +135,25 @@ namespace RushHour {
             Map solution = null;
             while (solution == null)
             {
-                if (queues.Count <= currQue + 1) { queues.Add(new ConcurrentQueue<Tuple<Map, char>>()); workersOnLvl.Add(new IntHelp(0)); }
-                if (workFin(currQue)) currQue++;
-                solution = Iterate(currQue, tree);
+                bool qcref = false;
+                QCLOCK.Enter(ref qcref);
+                    if (queues.Count <= currQue + 1) { queues.Add(new ConcurrentQueue<Tuple<Map, char>>()); workersOnLvl.Add(new IntHelp(0)); }
+                    if (workFin(currQue)) currQue++;
+                    Tuple<Map, char> var;
+                    if (queues[currQue].TryDequeue(out var)) 
+                        solution = Iterate(var, currQue, tree);
+                    else 
+                QCLOCK.Exit();
             }
             Globals.Solution = solution;
         }
 
-        private static Map Iterate(int workOnQue, Tree tree) {
-            Tuple<Map, char> var;
-            Interlocked.Increment(ref workersOnLvl[currQue].value);
-            while (!queues[workOnQue].TryDequeue(out var)) System.Threading.Thread.Sleep(5);
+        private static Map Iterate(Tuple<Map, char> var, int workOnQue, Tree tree)
+        {
+                QCLOCK.Exit();
             var currentMap = var.Item1;
             var cars = currentMap.Parse();
+            Interlocked.Increment(ref workersOnLvl[workOnQue].value);
           //Console.WriteLine("Checking:\n" + currentMap);
             if (cars.ContainsKey(Globals.TargetCar) && cars[Globals.TargetCar].Item1.Equals(targetLocation)) 
                 return currentMap;
@@ -169,7 +174,7 @@ namespace RushHour {
                         else break;
                     }
                 }
-            Interlocked.Decrement(ref workersOnLvl[currQue].value);
+            Interlocked.Decrement(ref workersOnLvl[workOnQue].value);
             if (!workToDo(workOnQue)) return Globals.NoSolutions; // We don't have anything to add
             return null; // no solution found yet
         }
@@ -186,14 +191,14 @@ namespace RushHour {
             return false;
         }
 
-        private static bool workFin(int currQue) //can we proceed to the next layer? i.e.: is the previous layer done and, if so, is there work to be done on this layer left?
+        private static bool workFin(int workOnQue) //can we proceed to the next layer? i.e.: is the previous layer done and, if so, is there work to be done on this layer left?
         {
-            if (currQue > 0)
+            if (workOnQue > 0)
             {
-                if (workersOnLvl[currQue - 1].value > 0) return false;
-                if (!queues[currQue - 1].IsEmpty) throw new Exception(); //return false; //what is this thread even doing here! he is in the wrong layer!
+                if (workersOnLvl[workOnQue - 1].value > 0) return false;
+                if (!queues[workOnQue - 1].IsEmpty) throw new Exception(); //return false; //what is this thread even doing here! he is in the wrong layer!
             }
-            if (!queues[currQue].IsEmpty) return false;
+            if (!queues[workOnQue].IsEmpty) return false;
             return true;    //voorgaande laag is afgewerkt en degene waar je op staat is accounted for door andere threads -> volgende laag!
         }
 
