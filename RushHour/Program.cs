@@ -21,7 +21,7 @@ namespace RushHour {
         static List<IntHelp> workersOnLvl = new List<IntHelp>();
         static int currQue = 0;
 
-        private const int NumTasks = 2;
+        private const int NumTasks = 10000;
 
         static void Main(string[] args) {
 
@@ -136,19 +136,19 @@ namespace RushHour {
             while (solution == null)
             {
                 bool qcref = false;
-                Console.WriteLine("Getting Lock... {0}", tasknr);
+                //Console.WriteLine("Getting Lock... {0}", tasknr);
                 QCLOCK.Enter(ref qcref);
-                Console.WriteLine("    Got Lock! {0}", tasknr);
+                //Console.WriteLine("    Got Lock! {0}", tasknr);
                     if (!workToDo(currQue)) { solution = Globals.NoSolutions; QCLOCK.Exit(); break; } // We don't have anything to add
                     if (queues.Count <= currQue + 1) { queues.Add(new ConcurrentQueue<Tuple<Map, char>>()); workersOnLvl.Add(new IntHelp(0)); }
-                    if (workFin(currQue)) { currQue++; Console.WriteLine("Increased currQue"); }
+                    if (workFin(currQue)) { currQue++; }//Console.WriteLine("Increased currQue"); }
                     Tuple<Map, char> var;
                     if (queues[currQue].TryDequeue(out var))
                     {
                         solution = Iterate(var, currQue, tree);
                     }
                     else
-                        if (QCLOCK.IsHeldByCurrentThread) { QCLOCK.Exit(); Console.WriteLine("Dropped Lock"); }
+                        if (QCLOCK.IsHeldByCurrentThread) { QCLOCK.Exit(); }//Console.WriteLine("Dropped Lock"); }
 
                 
             }
@@ -160,10 +160,10 @@ namespace RushHour {
         {
             Interlocked.Increment(ref workersOnLvl[workOnQue].value);
                 QCLOCK.Exit();
-                Console.WriteLine("Dropped Lock");
+                //Console.WriteLine("Dropped Lock");
             var currentMap = var.Item1;
             var cars = currentMap.Parse();
-          Console.WriteLine("Checking:\n" + currentMap);
+          //Console.WriteLine("Checking:\n" + currentMap);
             if (cars.ContainsKey(Globals.TargetCar) && cars[Globals.TargetCar].Item1.Equals(targetLocation)) 
                 return currentMap;
             foreach (var kvp in cars)
@@ -218,7 +218,7 @@ namespace RushHour {
                 tree.Add(currentMap, move);
                 if (queues.Count <= workOnQue + 1) { queues.Add(new ConcurrentQueue<Tuple<Map, char>>()); workersOnLvl.Add(new IntHelp(0)); }
                 queues[workOnQue+1].Enqueue(new Tuple<Map, char>(move, kvp.Key));
-              Console.WriteLine("Queued:\n" + move);
+              //Console.WriteLine("Queued:\n" + move);
             }
             else tree.rehangNeighbors(currentMap, moveNode);
         }

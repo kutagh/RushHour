@@ -54,7 +54,9 @@ namespace RushHour {
             DLOCK.Enter(ref dref);
                 var origin = Find(addto);
                 if (origin == null) throw new Exception(); // return; //unlikely
-                mapDict.Add(toAdd, new Node(toAdd, origin.depth + 1, origin));
+                if (!mapDict.ContainsKey(toAdd))
+                    mapDict.Add(toAdd, new Node(toAdd, origin.depth + 1, origin));
+                //else rehangNeighbors(toAdd, Find(addto));
             DLOCK.Exit();
         }
 
