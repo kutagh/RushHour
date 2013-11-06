@@ -136,9 +136,10 @@ namespace RushHour {
             while (solution == null)
             {
                 bool qcref = false;
-                Console.WriteLine("Getting Lock...");
+                Console.WriteLine("Getting Lock... {0}", tasknr);
                 QCLOCK.Enter(ref qcref);
-                Console.WriteLine("    Got Lock!");
+                Console.WriteLine("    Got Lock! {0}", tasknr);
+                    if (!workToDo(currQue)) { solution = Globals.NoSolutions; QCLOCK.Exit(); break; } // We don't have anything to add
                     if (queues.Count <= currQue + 1) { queues.Add(new ConcurrentQueue<Tuple<Map, char>>()); workersOnLvl.Add(new IntHelp(0)); }
                     if (workFin(currQue)) { currQue++; Console.WriteLine("Increased currQue"); }
                     Tuple<Map, char> var;
@@ -147,10 +148,12 @@ namespace RushHour {
                         solution = Iterate(var, currQue, tree);
                     }
                     else
-                QCLOCK.Exit();
-                Console.WriteLine("Dropped Lock");
+                        if (QCLOCK.IsHeldByCurrentThread) { QCLOCK.Exit(); Console.WriteLine("Dropped Lock"); }
+
+                
             }
-            Globals.Solution = solution;
+            if (solution != Globals.NoSolutions)
+                Globals.Solution = solution;
         }
 
         private static Map Iterate(Tuple<Map, char> var, int workOnQue, Tree tree)
@@ -181,7 +184,7 @@ namespace RushHour {
                     }
                 }
             Interlocked.Decrement(ref workersOnLvl[workOnQue].value);
-            if (!workToDo(workOnQue)) return Globals.NoSolutions; // We don't have anything to add
+            
             return null; // no solution found yet
         }
 
@@ -199,12 +202,12 @@ namespace RushHour {
 
         private static bool workFin(int workOnQue) //can we proceed to the next layer? i.e.: is the previous layer done and, if so, is there work to be done on this layer left?
         {
+            if (!queues[workOnQue].IsEmpty) return false;
             if (workOnQue > 0)
             {
                 if (workersOnLvl[workOnQue - 1].value > 0) return false;
-                if (!queues[workOnQue - 1].IsEmpty) throw new Exception(); //return false; //what is this thread even doing here! he is in the wrong layer!
+                //if (!queues[workOnQue - 1].IsEmpty) throw new Exception(); //return false; //what is this thread even doing here! he is in the wrong layer!
             }
-            if (!queues[workOnQue].IsEmpty) return false;
             return true;    //voorgaande laag is afgewerkt en degene waar je op staat is accounted for door andere threads -> volgende laag!
         }
 
