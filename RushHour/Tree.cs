@@ -30,11 +30,17 @@ namespace RushHour {
             return null;
         }
 
+        /// <summary>
+        /// Add a new map configuration to the tree
+        /// </summary>
+        /// <param name="addto">The parent configuration to add it to</param>
+        /// <param name="toAdd">The new configuration to add</param>
+        /// <param name="tuple">The move that was just made</param>
         public void Add(Map addto, Map toAdd, Tuple<char,Direction,int> tuple)
         {
             bool dref = false;
             DLOCK.Enter(ref dref);
-                if (!mapDict.ContainsKey(toAdd)) //yes we just did this allready, but now we are inside of a lock so we do it safely here (we did it outside first for some speed up)
+                if (!mapDict.ContainsKey(toAdd)) //yes we just did this already, but now we are inside of a lock so we do it safely here (we did it outside first for some speed up)
                 {
                     var origin = Find(addto);
                     if (origin == null) throw new Exception(); //something has seriously gone wrong...
@@ -44,6 +50,13 @@ namespace RushHour {
             DLOCK.Exit();
         }
 
+        /// <summary>
+        /// Reposition the node in the tree if necessary
+        /// </summary>
+        /// <param name="key">The parent configuration</param>
+        /// <param name="existingLoc">The node to reposition</param>
+        /// <param name="tuple">The move we just made</param>
+        /// <param name="fromAdd">Whether we need to get the lock again</param>
         public void rehangNeighbors(Map key, Node<Map> existingLoc, Tuple<char, Direction, int> tuple, bool fromAdd) //relocate a node to a higher point in the tree
         {
             Node<Map> prevBoard = Find(key);
