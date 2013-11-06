@@ -52,6 +52,15 @@ namespace RushHour {
             return false;
         }
 
+        /// <summary>
+        /// Generate a permutation of this configuration by moving the car
+        /// </summary>
+        /// <param name="car">Character of the car to move</param>
+        /// <param name="topLeft">Its top-left's square location</param>
+        /// <param name="d">The direction to move it towards</param>
+        /// <param name="length">The length of the car</param>
+        /// <param name="dist">The number of squares to move it</param>
+        /// <returns></returns>
         public Map makeMove(char car, Point topLeft, Direction d, int length, int dist) {
             char[,] mapResult = new char[map.GetLength(0), map.GetLength(1)];
             var xLength       = d == Direction.Right || d == Direction.Left ? length : 1;
@@ -75,6 +84,7 @@ namespace RushHour {
 
             return new Map(mapResult);
         }
+
 
         public Dictionary<char, Tuple<Point, int, Direction>> Parse() { //set up a dictionary with the cars in the map
             var result = new Dictionary<char, Tuple<Point, int, Direction>>();

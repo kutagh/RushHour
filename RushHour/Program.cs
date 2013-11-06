@@ -10,6 +10,7 @@ using System.IO;
 
 namespace RushHour {
     class Program {
+        #region static variables
         static bool outputMode;
         static Point targetLocation;
         static Map map;
@@ -22,6 +23,7 @@ namespace RushHour {
         static int currQue = 0;
 
         private const int NumTasks = 10000;
+        #endregion
 
         static void Main(string[] args) {
 
@@ -38,19 +40,21 @@ namespace RushHour {
             #endregion
 
             // Here goes parallel search for the holy grail
-            tree = new Tree(map);
 
+            // Initialize the search setup
+            tree = new Tree(map);
             queues.Add(new ConcurrentQueue<Tuple<Map, char>>());
             queues[0].Enqueue(new Tuple<Map, char>(map, '.'));
             workersOnLvl.Add(new IntHelp(0));
 
+            // And the crusaders to search
             Task[] tasks = new Task[NumTasks];
             for (int i = 0; i < NumTasks; i++)
             {
                 int n = i;  //[c# multithreaded bug]
                 tasks[i] = Task.Factory.StartNew(() => worker(n));
             }
-            Task.WaitAll(tasks);
+            Task.WaitAll(tasks); // Wait for all crusaders to report
 
             if (Globals.Solution != Globals.NoSolutions) { //we found a solution
                 if (outputMode) Console.WriteLine(tree.Find(Globals.Solution).moves);
@@ -65,8 +69,8 @@ namespace RushHour {
 
         private static void worker(int tasknr) //a concurrent worker
         {
-            Map solution = null;
-            while (solution == null)
+            Map solution = null; 
+            while (solution == null) // As long as we don't have a solution nor confirmation that no solutions exist, keep searching
             {
                 bool qcref = false;
                 QCLOCK.Enter(ref qcref);
@@ -81,6 +85,13 @@ namespace RushHour {
                 Globals.Solution = solution;
         }
 
+        /// <summary>
+        /// Generate permutations for a given Rush Hour configuration
+        /// </summary>
+        /// <param name="var">The configuration and last moved car to permute</param>
+        /// <param name="workOnQue">The queue on which we are working</param>
+        /// <param name="tree">The tree in which new nodes have to be inserted</param>
+        /// <returns>Null if no valid solutions are found, the winning configuration if found</returns>
         private static Map Iterate(Tuple<Map, char> var, int workOnQue, Tree tree)
         {
             Interlocked.Increment(ref workersOnLvl[workOnQue].value); //we start working on this height
@@ -88,9 +99,9 @@ namespace RushHour {
             var currentMap = var.Item1;
             var cars = currentMap.Parse();
             if (cars.ContainsKey(Globals.TargetCar) && cars[Globals.TargetCar].Item1.Equals(targetLocation)) 
-                return currentMap;
+                return currentMap; // The target car is at the right place so this must be the winning move.
             foreach (var kvp in cars)
-                if (kvp.Key != var.Item2) {
+                if (kvp.Key != var.Item2) { // Don't move the car we already moved, it will only generate already existing moves that aren't closer to the root
                     Map move;
                     bool horizontal = kvp.Value.Item3 == Direction.Right;
                     //all moves to the left or above the car

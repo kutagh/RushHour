@@ -19,7 +19,12 @@ namespace RushHour {
             mapDict.Add(initialConfiguration, root);
         }
 
-        public Node<Map> Find(Map toFind) {
+        /// <summary>
+        /// Find the node for a certain map configuration
+        /// </summary>
+        /// <param name="toFind">The configuration that we want to find</param>
+        /// <returns>A node if it already exists or null</returns>
+        public Node Find(Map toFind) {
             if (mapDict.ContainsKey(toFind))
                 return mapDict[toFind];
             return null;
