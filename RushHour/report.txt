@@ -1,0 +1,14 @@
+﻿Short report for Rush Hour solver by: Ian Zunderdorp (3643034) and S.F.A.M. (Bas) Brouwer (3966747)
+Data structures used:
+-	For feeding the worker tasks, we used a collection of concurrent queues from System.Collections.Concurrent.
+-	To store the moves that can be made from a particular Rush Hour configuration, we implemented a classical tree structure, using a Dictionary to improve lookup times.
+-	The result is a stack from System.Collections.Generic
+
+Bottlenecks in the program:
+We have two major points in the programs that with high contention would be bottlenecks:
+-	When we dequeue a configuration from the concurrent queue, we are locking the queue. This is due to the current setup which needs to check from which queue it needs to dequeue, in order to avoid working in too different layers of the tree.
+-	If we modify the tree (through adding a new node or changing a connection between nodes), it needs to be locked to avoid simultaneous changes and duplicated nodes.
+
+How we improved the speed of the program and which bottlenecks we avoided:
+-	In the queue from which the tasks retrieve a Rush Hour configuration, we store the configuration together with the last car that had been moved. This data is used to avoid generating unnecessary duplicated configurations, since all configurations with the same parent that moved the same car cannot reach a shorter path by moving the same car again. Due to this, we avoid generating several permutations of the map, which involves creating a new array and populating it from the original array, which would be an O(h*w) computation where h is the height and w is the width of the map.
+-	The tree that we use incorporates a Dictionary. Since all instances of a map object with the same map configuration have the same hash code in our code, this means that when we create a permutation that we encountered before we will find that it already has been added to the dictionary. When we need to use the node in the tree, the dictionary gives us an O(1) lookup where we would have had a worst case lookup of O(n) with a classic tree or O(log n) with any form of search trees. 
