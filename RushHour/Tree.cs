@@ -48,15 +48,15 @@ namespace RushHour {
             return null;
         }
 
-        public void Add(Map addto, Map toAdd)
+        public void Add(Map addto, Map toAdd, Tuple<char,Direction,int> tuple)
         {
             bool dref = false;
             DLOCK.Enter(ref dref);
                 var origin = Find(addto);
                 if (origin == null) throw new Exception(); // return; //unlikely
                 if (!mapDict.ContainsKey(toAdd))
-                    mapDict.Add(toAdd, new Node(toAdd, origin.depth + 1, origin));
-                //else rehangNeighbors(toAdd, Find(addto));
+                    mapDict.Add(toAdd, new Node(toAdd, origin.depth + 1, origin, tuple));
+                //else rehangNeighbors(toAdd, Find(addto), tuple);
             DLOCK.Exit();
         }
 
@@ -76,7 +76,8 @@ namespace RushHour {
         //    mapDict.Add(toAdd.value, toAdd);
         //}
 
-        public void rehangNeighbors(Map key, Node<Map> existingLoc) {
+        public void rehangNeighbors(Map key, Node<Map> existingLoc, Tuple<char, Direction, int> tuple) //relocate a node to a higher point in the tree
+        {
             Node<Map> prevBoard = Find(key);
             if (prevBoard.depth < existingLoc.depth)
             {
@@ -87,6 +88,8 @@ namespace RushHour {
                 //existingLoc.removeNeighbor(prevParent); //remove old parent from connections
                 //prevParent.removeNeighbor(existingLoc); //remove from connections of old parent
                 //prevBoard.AddNeighbor(existingLoc);     //add to connections of new parent
+
+                existingLoc.moves = prevBoard.moves + tuple.Item1 + Globals.ToString(tuple.Item2) + tuple.Item3.ToString() + " "; //rewrite the path
             }
         }
 
@@ -118,18 +121,22 @@ namespace RushHour {
 
         internal Node<T> parent = null;
         internal int depth;
+
+        internal string moves;
         
         public Node(T value, int deep) {
             //neighbors = new List<Node<T>>();
             this.value = value;
             depth = deep;
+            moves = "";
         }
 
-        public Node(T value, int deep, Node<T> p)
+        public Node(T value, int deep, Node<T> p, Tuple<char,Direction,int> tuple)
         {
             this.value = value;
             depth = deep;
             parent = p;
+            moves = parent.moves + tuple.Item1 + Globals.ToString(tuple.Item2) + tuple.Item3.ToString() + " ";
         }
 
         //public virtual void AddNeighbor(Node<T> node, bool sendToNB = true) {

@@ -32,6 +32,18 @@ namespace RushHour {
                 default              : return Direction.Default;
             }
         }
+
+        public static string ToString(this Direction d)
+        {
+            switch (d)
+            {
+                case Direction.Down  : return "d";
+                case Direction.Up    : return "u";
+                case Direction.Left  : return "l";
+                case Direction.Right : return "r";
+                default              : return "-";
+            }
+        }
     }
 
     class IntHelp   //helper class to fix this: "A property, indexer or dynamic member access may not be passed as an out or ref parameter."

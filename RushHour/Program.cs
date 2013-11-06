@@ -61,12 +61,14 @@ namespace RushHour {
 
             if (Globals.Solution != Globals.NoSolutions) {
                 // Winning solution inside
-                Console.WriteLine("We found a winning solution");
-                Console.WriteLine(Globals.Solution.ToString());
-                Console.WriteLine("Testing shortest path lookup");
-                var stack = tree.FindShortest(Globals.Solution);
-                while (stack.Count > 0)
-                    Console.WriteLine(stack.Pop().value);
+                //Console.WriteLine("We found a winning solution");
+                //Console.WriteLine(Globals.Solution.ToString());
+                //Console.WriteLine("Testing shortest path lookup");
+                //var stack = tree.FindShortest(Globals.Solution);
+                //while (stack.Count > 0)
+                //    Console.WriteLine(stack.Pop().value);
+                if (outputMode) Console.WriteLine(tree.Find(Globals.Solution).moves);
+                else Console.WriteLine(tree.Find(Globals.Solution).depth);
             }
             else {
                 // No solutions
@@ -92,42 +94,43 @@ namespace RushHour {
             //    Console.WriteLine(m.Item1.ToString());
             //}
             // Testing input parsing
-            while (true) {
-                Console.WriteLine(map.ToString());
-                Console.WriteLine("Please enter a command:");
-                var input = Console.ReadLine();
-                if (input.StartsWith("M")) {
-                    Direction dir = Direction.Default;
-                    switch(input[4]){
-                        case 'U': 
-                            dir = Direction.Up;
-                            break;
-                        case 'D': 
-                            dir = Direction.Down;
-                            break;
-                        case 'L':
-                            dir = Direction.Left;
-                            break;
-                        case 'R':
-                            dir = Direction.Right;
-                            break;
-                    }
-                    var temp = map.makeMove(input[2], dir, int.Parse(input[6].ToString()));
-                    if (temp != null) map = temp;
+            //while (true) {
+            //    Console.WriteLine(map.ToString());
+            //    Console.WriteLine("Please enter a command:");
+            //    var input = Console.ReadLine();
+            //    if (input.StartsWith("M")) {
+            //        Direction dir = Direction.Default;
+            //        switch(input[4]){
+            //            case 'U': 
+            //                dir = Direction.Up;
+            //                break;
+            //            case 'D': 
+            //                dir = Direction.Down;
+            //                break;
+            //            case 'L':
+            //                dir = Direction.Left;
+            //                break;
+            //            case 'R':
+            //                dir = Direction.Right;
+            //                break;
+            //        }
+            //        var temp = map.makeMove(input[2], dir, int.Parse(input[6].ToString()));
+            //        if (temp != null) map = temp;
 
-                    continue;
-                }
+            //        continue;
+            //    }
 
-                if (input.StartsWith("L")) {
-                    foreach (var kvp in map.Parse()) 
-                        Console.WriteLine("Car {0}'s top-left is at {1}, with a {3} orientation and length {2}.", kvp.Key, kvp.Value.Item1, kvp.Value.Item2, kvp.Value.Item3 == Direction.Down ? "vertical" : "horizontal");
-                    continue;
-                }
+            //    if (input.StartsWith("L")) {
+            //        foreach (var kvp in map.Parse()) 
+            //            Console.WriteLine("Car {0}'s top-left is at {1}, with a {3} orientation and length {2}.", kvp.Key, kvp.Value.Item1, kvp.Value.Item2, kvp.Value.Item3 == Direction.Down ? "vertical" : "horizontal");
+            //        continue;
+            //    }
 
-                if (input.StartsWith("H")) {
-                    Console.WriteLine(map.GetHashCode());
-                }
-            }
+            //    if (input.StartsWith("H")) {
+            //        Console.WriteLine(map.GetHashCode());
+            //    }
+            //}
+            Console.ReadLine();
         }
 
         private static void worker(int tasknr) //a concurrent worker
@@ -173,13 +176,13 @@ namespace RushHour {
                     //all moves to the left or above the car
                     for (int i = 1; i <= (horizontal ? kvp.Value.Item1.X : kvp.Value.Item1.Y); i++) {
                         move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3.Invert(), kvp.Value.Item2, i);
-                        if (move != null) NewMethod(workOnQue, tree, currentMap, kvp, move);
+                        if (move != null) NewMethod(workOnQue, tree, currentMap, kvp, kvp.Value.Item3.Invert(), i, move);
                         else break;
                     }
                     //all moves to the right or below the car
                     for (int i = 1; i < (horizontal ? map.map.GetLength(0) - kvp.Value.Item1.X : map.map.GetLength(1) - kvp.Value.Item1.Y); i++) {
                         move = currentMap.makeMove(kvp.Key, kvp.Value.Item1, kvp.Value.Item3, kvp.Value.Item2, i);
-                        if (move != null) NewMethod(workOnQue, tree, currentMap, kvp, move);
+                        if (move != null) NewMethod(workOnQue, tree, currentMap, kvp, kvp.Value.Item3, i, move);
                         else break;
                     }
                 }
@@ -211,16 +214,17 @@ namespace RushHour {
             return true;    //voorgaande laag is afgewerkt en degene waar je op staat is accounted for door andere threads -> volgende laag!
         }
 
-        private static void NewMethod(int workOnQue, Tree tree, Map currentMap, KeyValuePair<char, Tuple<Point, int, Direction>> kvp, Map move) {
+        private static void NewMethod(int workOnQue, Tree tree, Map currentMap, KeyValuePair<char, Tuple<Point, int, Direction>> kvp, Direction d, int n, Map move) {
             var moveNode = tree.Find(move);
+            Tuple<char, Direction, int> tuple = new Tuple<char, Direction, int>( kvp.Key, d, n);
             if (moveNode == null) {
                 //tree.AddNeighbor(currentMap, move);
-                tree.Add(currentMap, move);
+                tree.Add(currentMap, move, tuple);
                 if (queues.Count <= workOnQue + 1) { queues.Add(new ConcurrentQueue<Tuple<Map, char>>()); workersOnLvl.Add(new IntHelp(0)); }
                 queues[workOnQue+1].Enqueue(new Tuple<Map, char>(move, kvp.Key));
               //Console.WriteLine("Queued:\n" + move);
             }
-            else tree.rehangNeighbors(currentMap, moveNode);
+            else tree.rehangNeighbors(currentMap, moveNode, tuple);
         }
     }
 }
