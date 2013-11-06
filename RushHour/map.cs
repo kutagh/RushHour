@@ -31,7 +31,7 @@ namespace RushHour {
             return result.ToString();
         }
 
-        public override int GetHashCode() {
+        public override int GetHashCode() { //we need this function to hash using maps
             int calc = 0;
             for (int x = 0; x < map.GetLength(0); x++)
                 for (int y = 0; y < map.GetLength(1); y++)
@@ -50,23 +50,6 @@ namespace RushHour {
                 return true;
             }
             return false;
-        }
-
-        public Map makeMove(char car, Direction d, int dist) {
-            Point topLeft = new Point() { X = -1, Y = -1 };
-            Point defaultPoint = topLeft;
-            int xLength = 0, yLength = 0;
-            for (int x = 0; x < map.GetLength(0); x++)
-                for (int y = 0; y < map.GetLength(1); y++)
-                    if (map[x, y] == car) {
-                        if (topLeft.Equals(defaultPoint)) {
-                            topLeft = new Point() { X = x, Y = y };
-                            xLength = 1;
-                            yLength = 1;
-                        }
-                        else if (x == topLeft.X) yLength++; else xLength++;
-                    }
-            return makeMove(car, topLeft, d, xLength > 1 ? xLength : yLength, dist);
         }
 
         public Map makeMove(char car, Point topLeft, Direction d, int length, int dist) {
@@ -93,7 +76,7 @@ namespace RushHour {
             return new Map(mapResult);
         }
 
-        public Dictionary<char, Tuple<Point, int, Direction>> Parse() {
+        public Dictionary<char, Tuple<Point, int, Direction>> Parse() { //set up a dictionary with the cars in the map
             var result = new Dictionary<char, Tuple<Point, int, Direction>>();
             for (int x = 0; x < map.GetLength(0); x++)
                 for (int y = 0; y < map.GetLength(1); y++) {
@@ -117,26 +100,9 @@ namespace RushHour {
 
             return result;
         }
-
-        public static Tuple<char, Direction, int> GetMoveMade(Map origin, Map after) {
-            var originCars = origin.Parse();
-            var afterCars = after.Parse();
-
-            foreach (var key in originCars.Keys) {
-                var origPos = originCars[key].Item1;
-                var afterPos = afterCars[key].Item1;
-                if (origPos.Equals(afterPos))
-                    continue;
-                var dir = (origPos.X > afterPos.X || origPos.Y > afterPos.Y) ? originCars[key].Item3 : originCars[key].Item3.Invert();
-                var dist = (origPos.X != afterPos.X) ? origPos.X - afterPos.X : origPos.Y - afterPos.Y;
-                if (dist < 0) dist *= -1;
-
-                return new Tuple<char, Direction, int>(key, dir, dist);
-            }
-            return null;
-        }
     }
-    public enum Direction {
+    
+    public enum Direction { //directions for easier writing of code
         Default,
         Up,
         Down,
