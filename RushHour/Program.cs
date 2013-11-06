@@ -148,7 +148,7 @@ namespace RushHour {
                 if (queues.Count <= workOnQue + 1) { queues.Add(new ConcurrentQueue<Tuple<Map, char>>()); workersOnLvl.Add(new IntHelp(0)); } //We don't want to run out of queues...
                 queues[workOnQue+1].Enqueue(new Tuple<Map, char>(move, kvp.Key)); //we add the new board to the next queue
             }
-            else tree.rehangNeighbors(currentMap, moveNode, tuple); //maybe there was a shorter way to get here?
+            else tree.rehangNeighbors(currentMap, moveNode, tuple, false); //maybe there was a shorter way to get here?
         }
     }
 }

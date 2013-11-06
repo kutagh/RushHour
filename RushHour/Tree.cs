@@ -12,7 +12,7 @@ namespace RushHour {
 
         public Dictionary<Map, Node<Map>> mapDict = new Dictionary<Map,Node<Map>>();
 
-        static SpinLock DLOCK = new SpinLock();
+        static SpinLock DLOCK = new SpinLock(); //DLOCK locks the dictionary, to prevent two threads from trying to add or rehang the same nodes at the same time
 
         public Tree(Map initialConfiguration) {
             root = new Node(initialConfiguration,0);
@@ -40,18 +40,23 @@ namespace RushHour {
                     if (origin == null) throw new Exception(); //something has seriously gone wrong...
                     mapDict.Add(toAdd, new Node(toAdd, origin.depth + 1, origin, tuple));
                 }
+                else rehangNeighbors(toAdd, Find(addto), tuple, true);
             DLOCK.Exit();
         }
 
-        public void rehangNeighbors(Map key, Node<Map> existingLoc, Tuple<char, Direction, int> tuple) //relocate a node to a higher point in the tree
+        public void rehangNeighbors(Map key, Node<Map> existingLoc, Tuple<char, Direction, int> tuple, bool fromAdd) //relocate a node to a higher point in the tree
         {
             Node<Map> prevBoard = Find(key);
             if (prevBoard.depth < existingLoc.depth)
             {
+                if (!fromAdd) { bool dref = false; DLOCK.Enter(ref dref); } //if we came from Add(), we don't need the lock again.
+
                 var prevParent = existingLoc.parent;    //the previous parent
                 existingLoc.parent = prevBoard;         //new parent
                 existingLoc.depth = prevBoard.depth + 1;//new depth (get from new parent)
                 existingLoc.moves = prevBoard.moves + tuple.Item1 + Globals.ToString(tuple.Item2) + tuple.Item3.ToString() + " "; //rewrite the path
+
+                if (!fromAdd) DLOCK.Exit(); //if we came from Add(), we don't want to lose our dictionary lock
             }
         }
     }
