@@ -60,7 +60,7 @@ namespace RushHour {
         public void rehangNeighbors(Map oldParent, Node<Map> movingNode, Tuple<char, Direction, int> tuple, bool fromAdd) //relocate a node to a higher point in the tree
         {
             Node<Map> oldParentNode = Find(oldParent);
-            if (oldParentNode.depth < movingNode.depth)
+            if (oldParentNode.depth < movingNode.depth - 1)     //we should never have to rehang the way we work, but we have this code here because we originally considered distributing work differently
             {
                 if (!fromAdd) { bool dref = false; DLOCK.Enter(ref dref); } //if we came from Add(), we don't need the lock again.
 

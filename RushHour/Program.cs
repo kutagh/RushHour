@@ -123,14 +123,18 @@ namespace RushHour {
         }
 
         private static bool workToDo(int workOnQue) //is there still work left? (either to be done or being done)
-        {
+        {   
             if (queues.Count > workOnQue + 1)       
             {
                 if (workersOnLvl[workOnQue+1].value > 0) return true;
                 else if (!queues[workOnQue+1].IsEmpty) return true;
             }
-            if (workersOnLvl[workOnQue].value > 0) return true;
-            else if (!queues[workOnQue].IsEmpty) return true;
+            if (!queues[workOnQue].IsEmpty) return true;
+            else
+            {
+                if (Globals.Solution != null) return false; //if there is/are no work(ers) left on the previous layer or work on this layer, but someone has found a solution, we are also done
+                if (workersOnLvl[workOnQue].value > 0) return true;
+            }
             return false;
         }
 
