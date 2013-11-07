@@ -15,14 +15,15 @@ namespace RushHour {
         static Point targetLocation;
         static Map map;
 
-        static SpinLock QCLOCK = new SpinLock();
+        static Tree tree; //where we store our intermediate results 
+        static List<ConcurrentQueue<Tuple<Map, char>>> queues = new List<ConcurrentQueue<Tuple<Map, char>>>(); //where we store our work
+            //a collection containing queues; the more moves have been made, the higher the queue those maps are in; maps are stored as tuples with maps and last moved cars.
+        static List<IntHelp> workersOnLvl = new List<IntHelp>(); //where we store how many workers each queue has
 
-        static Tree tree;
-        static List<ConcurrentQueue<Tuple<Map, char>>> queues = new List<ConcurrentQueue<Tuple<Map, char>>>();
-        static List<IntHelp> workersOnLvl = new List<IntHelp>();
-        static int currQue = 0;
+        static int currQue = 0; //a counter which indicates what queue we are working on
+        static SpinLock QCLOCK = new SpinLock(); //the lock we use to prevent currQue conflicts
 
-        private const int NumTasks = 10000;
+        private const int NumTasks = 10000; //how many tasks we are going to run
         #endregion
 
         static void Main(string[] args) {
