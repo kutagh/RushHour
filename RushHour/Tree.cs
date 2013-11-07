@@ -57,17 +57,17 @@ namespace RushHour {
         /// <param name="existingLoc">The node to reposition</param>
         /// <param name="tuple">The move we just made</param>
         /// <param name="fromAdd">Whether we need to get the lock again</param>
-        public void rehangNeighbors(Map key, Node<Map> existingLoc, Tuple<char, Direction, int> tuple, bool fromAdd) //relocate a node to a higher point in the tree
+        public void rehangNeighbors(Map oldParent, Node<Map> movingNode, Tuple<char, Direction, int> tuple, bool fromAdd) //relocate a node to a higher point in the tree
         {
-            Node<Map> prevBoard = Find(key);
-            if (prevBoard.depth < existingLoc.depth)
+            Node<Map> oldParentNode = Find(oldParent);
+            if (oldParentNode.depth < movingNode.depth)
             {
                 if (!fromAdd) { bool dref = false; DLOCK.Enter(ref dref); } //if we came from Add(), we don't need the lock again.
 
-                var prevParent = existingLoc.parent;    //the previous parent
-                existingLoc.parent = prevBoard;         //new parent
-                existingLoc.depth = prevBoard.depth + 1;//new depth (get from new parent)
-                existingLoc.moves = prevBoard.moves + tuple.Item1 + Globals.ToString(tuple.Item2) + tuple.Item3.ToString() + " "; //rewrite the path
+                var prevParent = movingNode.parent;    //the previous parent
+                movingNode.parent = oldParentNode;         //new parent
+                movingNode.depth = oldParentNode.depth + 1;//new depth (get from new parent)
+                movingNode.moves = oldParentNode.moves + tuple.Item1 + Globals.ToString(tuple.Item2) + tuple.Item3.ToString() + " "; //rewrite the path
 
                 if (!fromAdd) DLOCK.Exit(); //if we came from Add(), we don't want to lose our dictionary lock
             }

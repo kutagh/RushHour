@@ -2,7 +2,6 @@
 Data structures used:
 -	For feeding the worker tasks, we used a collection of concurrent queues from System.Collections.Concurrent.
 -	To store the moves that can be made from a particular Rush Hour configuration, we implemented a classical tree structure, using a Dictionary to improve lookup times.
--	The result is a stack from System.Collections.Generic
 
 Bottlenecks in the program:
 We have two major points in the programs that with high contention would be bottlenecks:
