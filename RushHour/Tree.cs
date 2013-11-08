@@ -46,7 +46,7 @@ namespace RushHour {
                     if (origin == null) throw new Exception(); //something has seriously gone wrong...
                     mapDict.Add(toAdd, new Node(toAdd, origin.depth + 1, origin, tuple));
                 }
-                else rehangNeighbors(toAdd, Find(addto), tuple, true);
+                else rehangNeighbors(toAdd, Find(addto), true);
             DLOCK.Exit();
         }
 
@@ -57,28 +57,42 @@ namespace RushHour {
         /// <param name="existingLoc">The node to reposition</param>
         /// <param name="tuple">The move we just made</param>
         /// <param name="fromAdd">Whether we need to get the lock again</param>
-        public void rehangNeighbors(Map oldParent, Node<Map> movingNode, Tuple<char, Direction, int> tuple, bool fromAdd) //relocate a node to a higher point in the tree
+        public void rehangNeighbors(Map oldParent, Node<Map> movingNode, bool fromAdd) //relocate a node to a higher point in the tree
         {
             Node<Map> oldParentNode = Find(oldParent);
-            if (oldParentNode.depth < movingNode.depth - 1)     //we should never have to rehang the way we work, but we have this code here because we originally considered distributing work differently
+            if (oldParentNode.depth < movingNode.depth - 1)
             {
                 if (!fromAdd) { bool dref = false; DLOCK.Enter(ref dref); } //if we came from Add(), we don't need the lock again.
 
-                var prevParent = movingNode.parent;    //the previous parent
+                var prevParent = movingNode.parent;        //the previous parent
                 movingNode.parent = oldParentNode;         //new parent
                 movingNode.depth = oldParentNode.depth + 1;//new depth (get from new parent)
+                Tuple<char, Direction, int> tuple = GetMoveMade(oldParent, movingNode.value);
                 movingNode.moves = oldParentNode.moves + tuple.Item1 + Globals.ToString(tuple.Item2) + tuple.Item3.ToString() + " "; //rewrite the path
 
                 if (!fromAdd) DLOCK.Exit(); //if we came from Add(), we don't want to lose our dictionary lock
             }
         }
-        //"we should never have to rehang the way we work"
-        //Because we look at two queues of work at the same time maximum, we only look at either nodes that take an odd number of moves to get to and their children
-        //or nodes that take an even number of moves to get to. Or, when we look at nodes with n moves to get to it, we could also be looking at nodes with n-1 or n+1
-        //moves to get to it. (1)
-        //Because moving the same car twice directly following itself will only result in boards we have allready seen, you can't move the same car twice without at 
-        //least one move of another car in between those moves. Therefor, a board found at layer n, should never exist at either layer n-1 or n+1. (2)
-        //Thus, a rehang should never be necessary given (1) and (2).
+
+        public static Tuple<char, Direction, int> GetMoveMade(Map origin, Map after)    //if we rehang, our most recent move is incorrect, let's get the correct one then
+        {
+            var originCars = origin.Parse();
+            var afterCars = after.Parse();
+
+            foreach (var key in originCars.Keys)
+            {
+                var origPos = originCars[key].Item1;
+                var afterPos = afterCars[key].Item1;
+                if (origPos.Equals(afterPos))
+                    continue;
+                var dir = (origPos.X > afterPos.X || origPos.Y > afterPos.Y) ? originCars[key].Item3 : originCars[key].Item3.Invert();
+                var dist = (origPos.X != afterPos.X) ? origPos.X - afterPos.X : origPos.Y - afterPos.Y;
+                if (dist < 0) dist *= -1;
+
+                return new Tuple<char, Direction, int>(key, dir, dist);
+            }
+            return null;
+        }
     }
 
     class Node<T> {

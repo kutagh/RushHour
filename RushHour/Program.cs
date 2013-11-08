@@ -161,13 +161,13 @@ namespace RushHour {
         }
 
         private static void MoveCheck(int workOnQue, Tree tree, Map currentMap, KeyValuePair<char, Tuple<Point, int, Direction>> kvp, Direction d, int n, Map move) {
-            Tuple<char, Direction, int> tuple = new Tuple<char, Direction, int>(kvp.Key, d, n);
             var moveNode = tree.Find(move); //we check if the move is allready present, if it isn't we are going to add it
             if (moveNode == null) {
+                Tuple<char, Direction, int> tuple = new Tuple<char, Direction, int>(kvp.Key, d, n);
                 tree.Add(currentMap, move, tuple); //we add the new board to the dictionary
                 queues[(workOnQue + 1) % 4].Enqueue(new Tuple<Map, char>(move, kvp.Key)); //we add the new board to the next queue
             }
-            //else tree.rehangNeighbors(currentMap, moveNode, tuple, false); [look at rehangNeighbors to see why this line is commented out] //maybe there was a shorter way to get here?
+            else tree.rehangNeighbors(currentMap, moveNode, false); //maybe there was a shorter way to get here?
         }
     }
 }
