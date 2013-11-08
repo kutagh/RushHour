@@ -17,15 +17,16 @@ namespace RushHour {
 
         static Tree tree; //where we store our intermediate results 
         static ConcurrentQueue<Tuple<Map, char>>[] queues = new ConcurrentQueue<Tuple<Map, char>>[4]; //where we store our work
-            //a collection containing queues; the more moves have been made, the higher the queue those maps are in; maps are stored as tuples with maps and last moved cars.
+            //a collection of queues; because we work on two layers of the tree at the same time maximum, and the queues end up empty anyway
+            //we only need four of these queues to store all of our maps!
         static IntHelp[] workersOnLvl = new IntHelp[4]; //where we store how many workers each queue has
 
         static int currQue = 0; //a counter which indicates what queue we are working on
         static SpinLock QCLOCK = new SpinLock(); //the lock we use to prevent currQue conflicts
 
-        static SpinLock SLOCK = new SpinLock(); //a lock used to prevent solution overwriting when new solution takes longer
+        static SpinLock SLOCK = new SpinLock(); //a lock used to prevent solution overwriting when a new solution takes more moves
 
-        private const int NumTasks = 10000; //how many tasks we are going to run
+        private const int NumTasks = 25000; //how many tasks we are going to run [this was a nice fast amount for my pc (quadcore with hyperthreading)]
         #endregion
 
         static void Main(string[] args) {
@@ -46,7 +47,6 @@ namespace RushHour {
 
             // Initialize the search setup
             tree = new Tree(map);
-            //queues.Add(new ConcurrentQueue<Tuple<Map, char>>());
             for (int i = 0; i < 4; i++)
             {
                 queues[i] = new ConcurrentQueue<Tuple<Map, char>>();
@@ -83,7 +83,6 @@ namespace RushHour {
                 bool qcref = false;
                 QCLOCK.Enter(ref qcref);
                     if (!workToDo(currQue)) { solution = Globals.NoSolutions; QCLOCK.Exit(); break; } //No more work to do, so we finish up here
-                    //if (queues.Count <= currQue + 1) { queues.Add(new ConcurrentQueue<Tuple<Map, char>>()); workersOnLvl.Add(new IntHelp(0)); } //We don't want to run out of queues...
                     if (workFin(currQue)) { currQue++; } //One Queue done, next one!
                     Tuple<Map, char> var;
                     if (queues[currQue % 4].TryDequeue(out var)) solution = Iterate(var, currQue, tree); //We found some work, let's do that work
@@ -163,7 +162,7 @@ namespace RushHour {
                 //if (queues.Count <= workOnQue + 1) { queues.Add(new ConcurrentQueue<Tuple<Map, char>>()); workersOnLvl.Add(new IntHelp(0)); } //We don't want to run out of queues...
                 queues[(workOnQue + 1) % 4].Enqueue(new Tuple<Map, char>(move, kvp.Key)); //we add the new board to the next queue
             }
-            else tree.rehangNeighbors(currentMap, moveNode, tuple, false); //maybe there was a shorter way to get here?
+            //else tree.rehangNeighbors(currentMap, moveNode, tuple, false); //maybe there was a shorter way to get here?
         }
     }
 }
