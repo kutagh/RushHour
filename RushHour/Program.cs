@@ -23,6 +23,8 @@ namespace RushHour {
         static int currQue = 0; //a counter which indicates what queue we are working on
         static SpinLock QCLOCK = new SpinLock(); //the lock we use to prevent currQue conflicts
 
+        static SpinLock SLOCK = new SpinLock(); //a lock used to prevent solution overwriting when new solution takes longer
+
         private const int NumTasks = 10000; //how many tasks we are going to run
         #endregion
 
@@ -83,7 +85,13 @@ namespace RushHour {
                     if (QCLOCK.IsHeldByCurrentThread) { QCLOCK.Exit(); } //If we have the lock we need to drop it here [Iterate drops the lock allready]
             }
             if (solution != Globals.NoSolutions)
-                Globals.Solution = solution;
+            {
+                bool sref = false;
+                SLOCK.Enter(ref sref);
+                if (Globals.Solution == null || tree.Find(Globals.Solution).depth > tree.Find(solution).depth)
+                    Globals.Solution = solution;
+                SLOCK.Exit();
+            }
         }
 
         /// <summary>
