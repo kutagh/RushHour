@@ -98,7 +98,7 @@ namespace RushHour {
             if (solution != Globals.NoSolutions)
             {
                 bool sref = false;
-                SLOCK.Enter(ref sref);
+                SLOCK.Enter(ref sref); //there could have been a shorter solution allready, so we have to check...
                 if (Globals.Solution == null || tree.Find(Globals.Solution).depth > tree.Find(solution).depth)
                     Globals.Solution = solution;
                 SLOCK.Exit();
@@ -165,10 +165,9 @@ namespace RushHour {
             var moveNode = tree.Find(move); //we check if the move is allready present, if it isn't we are going to add it
             if (moveNode == null) {
                 tree.Add(currentMap, move, tuple); //we add the new board to the dictionary
-                //if (queues.Count <= workOnQue + 1) { queues.Add(new ConcurrentQueue<Tuple<Map, char>>()); workersOnLvl.Add(new IntHelp(0)); } //We don't want to run out of queues...
                 queues[(workOnQue + 1) % 4].Enqueue(new Tuple<Map, char>(move, kvp.Key)); //we add the new board to the next queue
             }
-            //else tree.rehangNeighbors(currentMap, moveNode, tuple, false); //maybe there was a shorter way to get here?
+            //else tree.rehangNeighbors(currentMap, moveNode, tuple, false); [look at rehangNeighbors to see why this line is commented out] //maybe there was a shorter way to get here?
         }
     }
 }

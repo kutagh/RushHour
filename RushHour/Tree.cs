@@ -72,6 +72,13 @@ namespace RushHour {
                 if (!fromAdd) DLOCK.Exit(); //if we came from Add(), we don't want to lose our dictionary lock
             }
         }
+        //"we should never have to rehang the way we work"
+        //Because we look at two queues of work at the same time maximum, we only look at either nodes that take an odd number of moves to get to and their children
+        //or nodes that take an even number of moves to get to. Or, when we look at nodes with n moves to get to it, we could also be looking at nodes with n-1 or n+1
+        //moves to get to it. (1)
+        //Because moving the same car twice directly following itself will only result in boards we have allready seen, you can't move the same car twice without at 
+        //least one move of another car in between those moves. Therefor, a board found at layer n, should never exist at either layer n-1 or n+1. (2)
+        //Thus, a rehang should never be necessary given (1) and (2).
     }
 
     class Node<T> {
