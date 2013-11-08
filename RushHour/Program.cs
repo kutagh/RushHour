@@ -22,7 +22,8 @@ namespace RushHour {
         static IntHelp[] workersOnLvl = new IntHelp[4]; //where we store how many workers each queue has
 
         static int currQue = 0; //a counter which indicates what queue we are working on
-        static SpinLock QCLOCK = new SpinLock(); //the lock we use to prevent currQue conflicts
+        //static SpinLock QCLOCK = new SpinLock(); //the lock we use to prevent currQue conflicts
+        static object QCLOCK = new object();
 
         static SpinLock SLOCK = new SpinLock(); //a lock used to prevent solution overwriting when a new solution takes more moves
 
@@ -80,13 +81,19 @@ namespace RushHour {
             Map solution = null; 
             while (solution == null) // As long as we don't have a solution nor confirmation that no solutions exist, keep searching
             {
-                bool qcref = false;
-                QCLOCK.Enter(ref qcref);
-                    if (!workToDo(currQue)) { solution = Globals.NoSolutions; QCLOCK.Exit(); break; } //No more work to do, so we finish up here
+                Tuple<Map, char> var;
+                int workOn = -1;
+                lock (QCLOCK)
+                {
+                    if (!workToDo(currQue)) { solution = Globals.NoSolutions; break; } //No more work to do, so we finish up here
                     if (workFin(currQue)) { currQue++; } //One Queue done, next one!
-                    Tuple<Map, char> var;
-                    if (queues[currQue % 4].TryDequeue(out var)) solution = Iterate(var, currQue, tree); //We found some work, let's do that work
-                    if (QCLOCK.IsHeldByCurrentThread) { QCLOCK.Exit(); } //If we have the lock we need to drop it here [Iterate drops the lock allready]
+                    if (queues[currQue % 4].TryDequeue(out var))
+                    {
+                        Interlocked.Increment(ref workersOnLvl[currQue % 4].value); //we start working on that height
+                        workOn = currQue; 
+                    }
+                }
+                if (workOn > -1) solution = Iterate(var, workOn, tree); //We found some work, let's do that work
             }
             if (solution != Globals.NoSolutions)
             {
@@ -107,8 +114,7 @@ namespace RushHour {
         /// <returns>Null if no valid solutions are found, the winning configuration if found</returns>
         private static Map Iterate(Tuple<Map, char> var, int workOnQue, Tree tree)
         {
-            Interlocked.Increment(ref workersOnLvl[workOnQue % 4].value); //we start working on this height
-                QCLOCK.Exit();  //we drop the lock here to pass currQue safely (could have been done differently, I know...)
+
             var currentMap = var.Item1;
             var cars = currentMap.Parse();
             if (cars.ContainsKey(Globals.TargetCar) && cars[Globals.TargetCar].Item1.Equals(targetLocation)) 
