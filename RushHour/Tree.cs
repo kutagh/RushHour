@@ -56,13 +56,13 @@ namespace RushHour {
         /// <param name="key">The parent configuration</param>
         /// <param name="existingLoc">The node to reposition</param>
         /// <param name="tuple">The move we just made</param>
-        /// <param name="fromAdd">Whether we need to get the lock again</param>
-        public void rehangNeighbors(Map oldParent, Node<Map> movingNode, bool fromAdd) //relocate a node to a higher point in the tree
+        /// <param name="haveLock">Whether we need to get the lock again</param>
+        public void rehangNeighbors(Map oldParent, Node<Map> movingNode, bool haveLock) //relocate a node to a higher point in the tree
         {
             Node<Map> oldParentNode = Find(oldParent);
             if (oldParentNode.depth < movingNode.depth - 1)
             {
-                if (!fromAdd) { bool dref = false; DLOCK.Enter(ref dref); } //if we came from Add(), we don't need the lock again.
+                if (!haveLock) { bool dref = false; DLOCK.Enter(ref dref); } //if we came from Add(), we don't need the lock again.
 
                 var prevParent = movingNode.parent;        //the previous parent
                 movingNode.parent = oldParentNode;         //new parent
@@ -70,7 +70,7 @@ namespace RushHour {
                 Tuple<char, Direction, int> tuple = GetMoveMade(oldParent, movingNode.value);
                 movingNode.moves = oldParentNode.moves + tuple.Item1 + Globals.ToString(tuple.Item2) + tuple.Item3.ToString() + " "; //rewrite the path
 
-                if (!fromAdd) DLOCK.Exit(); //if we came from Add(), we don't want to lose our dictionary lock
+                if (!haveLock) DLOCK.Exit(); //if we came from Add(), we don't want to lose our dictionary lock
             }
         }
 

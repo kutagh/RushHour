@@ -98,7 +98,7 @@ namespace RushHour {
             if (solution != Globals.NoSolutions)
             {
                 bool sref = false;
-                SLOCK.Enter(ref sref); //there could have been a shorter solution allready, so we have to check...
+                SLOCK.Enter(ref sref); //there could have been a shorter solution already, so we have to check...
                 if (Globals.Solution == null || tree.Find(Globals.Solution).depth > tree.Find(solution).depth)
                     Globals.Solution = solution;
                 SLOCK.Exit();
